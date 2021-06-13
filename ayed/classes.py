@@ -1,7 +1,4 @@
-from curses import wrapper
-from mimetypes import init
 from string import ascii_lowercase
-from textwrap import wrap
 from typing import NamedTuple, Optional
 from dataclasses import dataclass
 from random import sample
