@@ -20,7 +20,8 @@ def test_tfrom_str() -> None:
 };
 """
     t = Tokenizer.from_path(Path('tests/structs/structs.cpp'))
-    assert str(t.tokens[0].from_str()) == result
+    r = t.tokens[0].from_str()
+    assert r == result
 
 def test_from_str() -> None:
     result = """Equipo equipoFromString(string e)
