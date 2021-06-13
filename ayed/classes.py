@@ -1,6 +1,9 @@
+from curses import wrapper
+from mimetypes import init
 from string import ascii_lowercase
+from textwrap import wrap
 from typing import NamedTuple, Optional
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from random import sample
 
 C_DTYPES = {
@@ -56,23 +59,25 @@ class Variable(NamedTuple):
         return {'int': 'stoi'}.get(self.type, f'{self.type.lower()}FromString')
 
 
-@dataclass
-class CFunc:
-    ret: str
-    name: str
-    params: list[str]
-    vret: str
-    body: list[str] = field(default_factory=list)
-
-    def __str__(self) -> str:
-        return (
-            f'{self.ret} {self.name}({", ".join(self.params)})\n'
-            + '{\n'
-            + (';\n'.join(self.body) + ';\n' if self.body else '')
-            + f'return {self.vret};'
-            + '\n'
-            + '};\n'
-        )
+def cfunc(
+    ret: str,
+    name: str,
+    vret: str,
+    *,
+    params: Optional[list[str]],
+    body: Optional[list[str]] = None,
+) -> str:
+    """Builds a C function"""
+    if body:
+        body = ["  " + line for line in body]
+    return (
+        f'{ret} {name}({", ".join(params or [])})\n'  # returntype functionName(type varname, for all params)
+        + '{\n'  # {
+        + (';\n'.join(body) + ';\n' if body else '')  # function body
+        + f'  return {vret};'  # return varname;
+        + '\n'
+        + '};\n'  # };
+    )
 
 
 @dataclass
@@ -80,7 +85,7 @@ class Struct:
     name: str
     fields: tuple[Variable, ...]
 
-    def to_str(self, sep: str) -> CFunc:
+    def to_str(self, sep: Optional[str] = '-') -> str:
         name = self.name[0].lower()
         variables: list[str] = []
         for var in self.fields:
@@ -90,11 +95,14 @@ class Struct:
             s = f'{var.type_to_str()}({name}.{var.name})'
             variables.append(s)
         ret = f"+'{sep}'+".join(variables)
-        return CFunc(
-            'string', f'{self.name.lower()}ToString', [f'{self.name} {name}'], ret
+        return cfunc(
+            'string',
+            f'{self.name.lower()}ToString',
+            ret,
+            params=[f'{self.name} {name}'],
         )
 
-    def from_str(self) -> CFunc:
+    def from_str(self) -> str:
         name = self.name[0].lower()
         variables: list[str] = [f'{self.name} x']
         for i, var in enumerate(self.fields):
@@ -106,16 +114,15 @@ class Struct:
                     if fn == 'strcpy'
                     else f'x.{var.name} = {fn}(t{i})'
                 )
-        func = CFunc(
+        return cfunc(
             self.name,
             f'{self.name.lower()}FromString',
-            [f'string {name}'],
             'x',
-            variables,
+            params=[f'string {name}'],
+            body=variables,
         )
-        return func
 
-    def init(self) -> CFunc:
+    def init(self) -> str:
         vnames = sample(ascii_lowercase[13:], k=len(self.fields))
         parameters = [
             f'{field.type if not field.ctype else "string"} {vnames[i]}'
@@ -128,4 +135,11 @@ class Struct:
                 continue
             line = f"x.{var.name} = {vnames[i]}"
             body.append(line)
-        return CFunc(self.name, f'new{self.name}', parameters, 'x', body=body)
+        return cfunc(self.name, f'new{self.name}', 'x', params=parameters, body=body)
+
+    def __str__(self) -> str:
+        fns = ""
+        fns += self.init()
+        fns += self.to_str('-')
+        fns += self.from_str()
+        return fns
