@@ -1,6 +1,6 @@
 from string import ascii_lowercase
-from typing import NamedTuple, Optional
-from dataclasses import dataclass
+from typing import Any, Optional, TypedDict
+from dataclasses import dataclass, field
 from random import sample
 
 C_DTYPES = {
@@ -36,10 +36,16 @@ C_DTYPES = {
 }
 
 
-class Variable(NamedTuple):
+@dataclass
+class Variable:
     type: str
     name: str
-    ctype: Optional[str]
+    ctype: Optional[str] = None
+    data: list[Any] = field(
+        default_factory=list
+    )  # the data that the variable holds. Used when loading an excel file
+    struct_id: Optional[int] = None
+    file_id: Optional[int] = None
 
     def type_to_str(self) -> str:
         return (
@@ -54,6 +60,12 @@ class Variable(NamedTuple):
         if self.ctype:
             return 'strcpy'
         return {'int': 'stoi'}.get(self.type, f'{self.type.lower()}FromString')
+
+
+class File(TypedDict):
+    filenames: list[str]
+    structs: list[str]
+    variables: list[Variable]
 
 
 def cfunc(
