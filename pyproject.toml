@@ -6,12 +6,7 @@ authors = ["Bocanada <24578415+Bocanada@users.noreply.github.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.9"
-fastapi = "^0.65.2"
-markdown2 = "^2.4.0"
-uvicorn = "^0.14.0"
-Pygments = "^2.9.0"
 pandas = "^1.2.4"
-xlrd = "^2.0.1"
 openpyxl = "^3.0.7"
 
 [tool.poetry.dev-dependencies]
