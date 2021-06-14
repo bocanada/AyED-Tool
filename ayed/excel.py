@@ -114,10 +114,14 @@ class Excel:
         return file
 
 
-def write_includes(fh: TextIOWrapper, includes: list[str]):
+def write_includes(fh: Union[TextIOWrapper, str], includes: list[str]):
     for lib in includes:
         lib = f'<{lib}>' if not "/" in lib else f'"{lib}"'
-        print(f'#include {lib}', file=fh)
+        if isinstance(fh, str):
+            fh += f'#include {lib}\n'
+        else:
+            print(f'#include {lib}', file=fh)
+    return fh
 
 
 def writer_from_file(file: File, *, sheet_name: str) -> None:
