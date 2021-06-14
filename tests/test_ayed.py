@@ -8,14 +8,14 @@ def test_version() -> None:
 
 
 def test_tfrom_str() -> None:
-    result = """Equipo equipoFromString(std::string e)
+    result = """Equipo equipoFromString(std::string s)
 {
   Equipo x{};
-  std::string t0 = getTokenAt(e, '-', 0);
+  std::string t0 = getTokenAt(s, '-', 0);
   x.idEq = stoi(t0);
-  std::string t1 = getTokenAt(e, '-', 1);
+  std::string t1 = getTokenAt(s, '-', 1);
   strcpy(x.nombre, t1.c_str());
-  std::string t2 = getTokenAt(e, '-', 2);
+  std::string t2 = getTokenAt(s, '-', 2);
   x.puntos = stoi(t2);
   return x;
 };
@@ -30,7 +30,7 @@ def test_todebug() -> None:
   sout << "Equipo" << "{";
   sout << "idEq : " << e.idEq << ", ";
   sout << "nombre : " << e.nombre << ", ";
-  sout << "puntos : " << e.puntos ;
+  sout << "puntos : " << e.puntos;
   sout << "};";
   return sout.str();
 };
@@ -40,14 +40,14 @@ def test_todebug() -> None:
     assert r == result
 
 def test_from_str() -> None:
-    result = """Equipo equipoFromString(std::string e)
+    result = """Equipo equipoFromString(std::string s)
 {
   Equipo x{};
-  std::string t0 = getTokenAt(e, '-', 0);
+  std::string t0 = getTokenAt(s, '-', 0);
   x.idEq = stoi(t0);
-  std::string t1 = getTokenAt(e, '-', 1);
+  std::string t1 = getTokenAt(s, '-', 1);
   strcpy(x.nombre, t1.c_str());
-  std::string t2 = getTokenAt(e, '-', 2);
+  std::string t2 = getTokenAt(s, '-', 2);
   x.puntos = stoi(t2);
   return x;
 };
@@ -72,12 +72,12 @@ def test_to_str() -> None:
 
 
 def test_fromstr_with_structs() -> None:
-    result = '''NEquipo nequipoFromString(std::string n)
+    result = '''NEquipo nequipoFromString(std::string s)
 {
   NEquipo x{};
-  std::string t0 = getTokenAt(n, '-', 0);
+  std::string t0 = getTokenAt(s, '-', 0);
   x.e = equipoFromString(t0);
-  std::string t1 = getTokenAt(n, '-', 1);
+  std::string t1 = getTokenAt(s, '-', 1);
   x.npuntos = stoi(t1);
   return x;
 };
