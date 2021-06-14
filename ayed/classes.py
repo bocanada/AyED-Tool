@@ -102,11 +102,11 @@ class Struct:
     def to_str(self, sep: Optional[str] = '-') -> str:
         name = self.name[0].lower()
         variables: list[str] = []
-        for var in self.fields:
-            if var.type == 'string':
-                variables.append(var.name)
+        for field in self.fields:
+            if field.type == 'string':
+                variables.append(field.name)
                 continue
-            s = f'{var.type_to_str()}({name}.{var.name})'
+            s = f'{field.type_to_str()}({name}.{field.name})'
             variables.append(s)
         ret = f"+'{sep}'+".join(variables)
         return cfunc(
@@ -144,22 +144,21 @@ class Struct:
         return fn
 
     def from_str(self) -> str:
-        name = self.name[0].lower()
         variables: list[str] = [f'{self.name} x' + "{}"]
-        for i, var in enumerate(self.fields):
-            token = f"std::string t{i} = getTokenAt({name}, '-', {i})"
+        for i, field in enumerate(self.fields):
+            token = f"std::string t{i} = getTokenAt(s, '-', {i})"
             variables.append(token)
-            if fn := var.str_to_type():
+            if fn := field.str_to_type():
                 variables.append(
-                    fn + f'(x.{var.name}, t{i}.c_str())'
+                    fn + f'(x.{field.name}, t{i}.c_str())'
                     if fn == 'strcpy'
-                    else f'x.{var.name} = {fn}(t{i})'
+                    else f'x.{field.name} = {fn}(t{i})'
                 )
         return cfunc(
             self.name,
             f'{self.name.lower()}FromString',
             vret='x',
-            params=[f'std::string {name}'],
+            params=[f'std::string s'],
             body=variables,
         )
 
@@ -168,8 +167,8 @@ class Struct:
         body = ["std::stringstream sout", f'sout << "{self.name}"' + ' << "{"']
         for i, field in enumerate(self.fields):
             body.append(
-                f'sout << "{field.name} : " << {name}.{field.name} '
-                + ('<< ", "' if i != len(self.fields) -1 else '')
+                f'sout << "{field.name} : " << {name}.{field.name}'
+                + (' << ", "' if i != len(self.fields) - 1 else '')
             )
         body.append('sout << "};"')
         return cfunc(
@@ -187,11 +186,13 @@ class Struct:
             for i, field in enumerate(self.fields)
         ]
         body: list[str] = [f'{self.name} x' + "{}"]
-        for i, var in enumerate(self.fields):
-            if var.ctype:
-                body.append(f'{var.str_to_type()}(x.{var.name}, {vnames[i]}.c_str())')
+        for i, field in enumerate(self.fields):
+            if field.ctype:
+                body.append(
+                    f'{field.str_to_type()}(x.{field.name}, {vnames[i]}.c_str())'
+                )
                 continue
-            line = f"x.{var.name} = {vnames[i]}"
+            line = f"x.{field.name} = {vnames[i]}"
             body.append(line)
         return cfunc(
             self.name, f'new{self.name}', vret='x', params=parameters, body=body
@@ -204,7 +205,4 @@ class Struct:
                 f'{field.ctype};\n' if field.ctype else ';\n'
             )
         fns += "};\n"
-        fns += self.init()
-        fns += self.to_str('-')
-        fns += self.from_str()
         return fns
