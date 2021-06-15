@@ -114,29 +114,25 @@ class Excel:
         return file
 
 
-def write_includes(fh: Union[TextIOWrapper, str], includes: list[str]):
-    for lib in includes:
-        lib = f'<{lib}>' if not "/" in lib else f'"{lib}"'
-        if isinstance(fh, str):
-            fh += f'#include {lib}\n'
-        else:
-            print(f'#include {lib}', file=fh)
-    return fh
+def add_includes(*, libs: list[str]) -> str:
+    lib = ["#include " f'<{lib}>' if not "/" in lib else f'"{lib}"' for lib in libs]
+    return '\n'.join(lib)
 
 
 def writer_from_file(file: File, *, sheet_name: str) -> None:
     sheet_name = sanitize_name(sheet_name)
     with open(f'{sheet_name}.cpp', 'w') as fh:
-        write_includes(
-            fh,
-            [
-                'filesystem',
-                'cstdio',
-                'iostream',
-                'cstring',
-                'string',
-                'biblioteca/funciones/tokens.hpp',
-            ],
+        print(
+            add_includes(
+                libs=[
+                    'filesystem',
+                    'cstdio',
+                    'iostream',
+                    'cstring',
+                    'string',
+                    'biblioteca/funciones/tokens.hpp',
+                ],
+            )
         )
         for i, fname in enumerate(file['filenames']):
             vars: list[Variable] = []
