@@ -12,7 +12,7 @@ SCRIPT_DIR = os.path.dirname(
 )
 sys.path.append(os.path.normpath(os.path.join(SCRIPT_DIR, PACKAGE_PARENT)))
 from ayed.classes import Struct, Variable
-from ayed.excel import write_includes
+from ayed.excel import add_includes
 from typing import Any
 
 nfields = compile(
@@ -26,13 +26,11 @@ nfields = compile(
 
 @dataclass
 class Tokenizer:
-    tokens: list[Struct]
+    structs: list[Struct]
 
     def to_str(self) -> str:
-        s = ""
-        s = write_includes(
-            s,
-            [
+        s = add_includes(
+            libs=[
                 'filesystem',
                 'cstdio',
                 'iostream',
@@ -41,7 +39,7 @@ class Tokenizer:
                 'biblioteca/funciones/tokens.hpp',
             ],
         )
-        for token in self.tokens:
+        for token in self.structs:
             s += str(token)
             s += token.init()
             s += token.to_str()
