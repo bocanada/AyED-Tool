@@ -1,6 +1,7 @@
+__pycache__
+ayed/qtapp.ui
+.vim
 .vscode
 .mypy_cache
 .pytest_cache
-__pycache__
 .venv
-.vim
