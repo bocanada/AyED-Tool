@@ -1,5 +1,5 @@
 from string import ascii_lowercase
-from typing import Any, Optional, TypedDict
+from typing import Any, Iterable, Optional, TypedDict
 from dataclasses import dataclass, field
 from random import sample
 
@@ -95,14 +95,17 @@ def cfunc(
 
 
 @dataclass
-class Struct:
+class Struct(Iterable[Variable]):
     name: str
     fields: tuple[Variable, ...]
+
+    def __iter__(self):
+        yield from self.fields
 
     def to_str(self, sep: Optional[str] = '-') -> str:
         name = self.name[0].lower()
         variables: list[str] = []
-        for field in self.fields:
+        for field in self:
             if field.type == 'string':
                 variables.append(field.name)
                 continue
@@ -116,6 +119,23 @@ class Struct:
             params=[f'{self.name} {name}'],
         )
 
+    def reader(self, folder_name: str, file_name: str) -> str:
+        fname = file_name.split('.')[0]
+        fname = f'read{fname}'
+        while_loop = (
+            "while (!feof(f)) {\n"
+            f"\t\tstd::cout << {self.name.lower()}ToDebug(x) << std::endl;\n\t\tfread(&x, sizeof({self.name}), 1, f);"
+            "\n\t}"
+        )
+        body = [
+            f'FILE* f = fopen("{folder_name}/{file_name}", "r+b")',
+            f'{self.name} x' + "{}",
+            f'fread(&x, sizeof({self.name}), 1, f)',
+            while_loop,
+            'fclose(f)',
+        ]
+        return cfunc('void', fname, body=body)
+
     def writer(self, folder_name: str, file_name: str) -> str:
         fname = file_name.split('.')[0]
         fname = f'write{fname}'
@@ -126,7 +146,7 @@ class Struct:
         ]
         size = len(self.fields[0].data)
         for i in range(size):
-            for field in self.fields:
+            for field in self:
                 if field.type == 'string':
                     field.type = 'std::string'
                 if field.ctype:
@@ -145,7 +165,7 @@ class Struct:
 
     def from_str(self) -> str:
         variables: list[str] = [f'{self.name} x' + "{}"]
-        for i, field in enumerate(self.fields):
+        for i, field in enumerate(self):
             token = f"std::string t{i} = getTokenAt(s, '-', {i})"
             variables.append(token)
             if fn := field.str_to_type():
@@ -165,7 +185,7 @@ class Struct:
     def to_debug(self) -> str:
         name = self.name.lower()[0]
         body = ["std::stringstream sout", f'sout << "{self.name}"' + ' << "{"']
-        for i, field in enumerate(self.fields):
+        for i, field in enumerate(self):
             body.append(
                 f'sout << "{field.name} : " << {name}.{field.name}'
                 + (' << ", "' if i != len(self.fields) - 1 else '')
@@ -183,10 +203,10 @@ class Struct:
         vnames = sample(ascii_lowercase[13:], k=len(self.fields))
         parameters = [
             f'{field.type if not field.ctype else "std::string"} {vnames[i]}'
-            for i, field in enumerate(self.fields)
+            for i, field in enumerate(self)
         ]
         body: list[str] = [f'{self.name} x' + "{}"]
-        for i, field in enumerate(self.fields):
+        for i, field in enumerate(self):
             if field.ctype:
                 body.append(
                     f'{field.str_to_type()}(x.{field.name}, {vnames[i]}.c_str())'
@@ -200,7 +220,7 @@ class Struct:
 
     def __str__(self) -> str:
         fns = f"struct {self.name} " + "{\n"
-        for field in self.fields:
+        for field in self:
             fns += f"  {field.type} {field.name}" + (
                 f'{field.ctype};\n' if field.ctype else ';\n'
             )
