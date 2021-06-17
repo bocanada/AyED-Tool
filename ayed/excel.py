@@ -1,5 +1,5 @@
 from copy import deepcopy
-from io import TextIOWrapper
+from time import process_time_ns
 import os
 import sys
 from dataclasses import dataclass, field
@@ -42,21 +42,22 @@ class Excel:
         if isinstance(self.file_path, str):
             self.file_path = Path(self.file_path)
 
-    def read(self):
+    def read(self, *, sheet: Optional[str] = None):
+        if sheet:
+            self.sheet = sheet
         self.df = read_excel(self.file_path.absolute().as_uri(), sheet_name=self.sheet)  # type: ignore
 
     def read_sheets(self) -> FILES:
         files = []
-        if not isinstance(self.df, dict) or not self.df:
-            raise TypeError(
-                f'Expected {dict[str, DataFrame]} but got {type(self.df)}. Try using read_sheet instead.'
-            )
+        assert (
+            isinstance(self.df, dict) or self.df
+        ), 'Maybe you meant to use "read_sheet".'
         for sheet_name, data in self.df.items():
             print(f"Reading... {sheet_name}")
             data = data.dropna(axis='columns', how='all')
             file = File(filenames=[], structs=[], variables=[])
             self.read_sheet(file=file, inplace=True, df=data)
-            files.append({sanitize_name(sheet_name): file})
+            files.append({sanitize_name(sheet_name): file})  # type: ignore
             assert len(file['filenames']) == len(file['structs'])
             print(f'Found {len(file["structs"])} structs')
         return files
@@ -64,12 +65,12 @@ class Excel:
     def read_sheet(
         self,
         *,
-        df: Optional[DataFrame] = None,
+        df: Optional[Union[DataFrame, Series]] = None,
         file: Optional[File] = None,
         inplace: Optional[bool] = False,
     ) -> File:
         if not df:
-            df = self.df
+            df = self.df  # type: ignore
         df = df.dropna(axis='columns', how='all')
         file = (
             File(filenames=[], structs=[], variables=[])
@@ -78,17 +79,14 @@ class Excel:
             if not inplace
             else deepcopy(file)
         )
-        if not isinstance(self.df, DataFrame):
-            raise TypeError(
-                f'Expected {DataFrame}|{Series} but got {type(self.df)}. Try using read_sheets instead.'
-            )
+        assert isinstance(df, DataFrame), 'Maybe you meant to use "read_sheets"'
         for (_, content) in df.iteritems():
             if content.empty:
                 continue
             var = Variable(
                 file_id=0, struct_id=0, type='', name='', ctype=None, data=[]
             )
-            for (_, item) in content.items():
+            for item in content.values:
                 if isna(item):
                     continue
                 if isinstance(item, str):
@@ -115,13 +113,14 @@ class Excel:
 
 
 def add_includes(*, libs: list[str]) -> str:
-    lib = ["#include " f'<{lib}>' if not "/" in lib else f'"{lib}"' for lib in libs]
+    lib = ["#include " + (f'<{lib}>' if not "/" in lib else f'"{lib}"') for lib in libs]
     return '\n'.join(lib)
 
 
-def writer_from_file(file: File, *, sheet_name: str) -> None:
+def writer_from_file(file: File, *, path: Path, sheet_name: str) -> None:
+    assert sheet_name is not None
     sheet_name = sanitize_name(sheet_name)
-    with open(f'{sheet_name}.cpp', 'w') as fh:
+    with (path / (sheet_name + ".cpp")).open(mode='w') as fh:
         print(
             add_includes(
                 libs=[
@@ -130,9 +129,9 @@ def writer_from_file(file: File, *, sheet_name: str) -> None:
                     'iostream',
                     'cstring',
                     'string',
-                    'biblioteca/funciones/tokens.hpp',
                 ],
-            )
+            ),
+            file=fh,
         )
         for i, fname in enumerate(file['filenames']):
             vars: list[Variable] = []
@@ -144,8 +143,9 @@ def writer_from_file(file: File, *, sheet_name: str) -> None:
             print(s, file=fh)
             print(s.to_debug(), file=fh)
             print(s.writer(sheet_name, fname), file=fh)
+            print(s.reader(sheet_name, fname), file=fh)
         fn_body = [
-            f'std::cout << "--" << "{f}" << "--" << std::endl;\n  write{f.split(".")[0]}()'
+            f'std::cout << "--" << "{f}" << "--" << std::endl;\n\twrite{f.split(".")[0]}();\n\tread{f.split(".")[0]}()'
             for f in f['filenames']
         ]
         print(cfunc('int', 'main', body=fn_body, vret="0"), file=fh)
@@ -158,12 +158,11 @@ def writers_from_file(files: FILES) -> None:
         )
     for file in files:
         for (sheet_name, f) in file.items():
-            writer_from_file(f, sheet_name=sheet_name)
+            writer_from_file(f, path=Path("output_files"), sheet_name=sheet_name)
 
 
 if __name__ == "__main__":
-    excel = Excel('./ayed/AlgoritmosFiles.xlsx', sheet="Compañía de aviación")
+    excel = Excel('./ayed/AlgoritmosFiles.xlsx')
     excel.read()
     f = excel.read_sheet()
-    pprint(f)
-    writer_from_file(f, sheet_name=excel.sheet)
+    writer_from_file(f, path=Path("output_files"), sheet_name=excel.sheet)
