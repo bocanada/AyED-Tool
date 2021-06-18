@@ -6,9 +6,13 @@ authors = ["Bocanada <24578415+Bocanada@users.noreply.github.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.9"
+pandas = "^1.2.4"
+openpyxl = "^3.0.7"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
+mypy = "^0.902"
+black = "^21.6b0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
