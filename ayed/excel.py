@@ -71,6 +71,7 @@ class Excel:
     ) -> File:
         if not df:
             df = self.df  # type: ignore
+        assert isinstance(df, (DataFrame, Series)), "You should probably use read_sheets"
         df = df.dropna(axis='columns', how='all')
         file = (
             File(filenames=[], structs=[], variables=[])
@@ -79,7 +80,6 @@ class Excel:
             if not inplace
             else deepcopy(file)
         )
-        assert isinstance(df, DataFrame), 'Maybe you meant to use "read_sheets"'
         for (_, content) in df.iteritems():
             if content.empty:
                 continue
@@ -135,7 +135,7 @@ def writer_from_file(file: File, *, path: Path, sheet_name: str) -> None:
         )
         for i, fname in enumerate(file['filenames']):
             vars: list[Variable] = []
-            for var in f['variables']:
+            for var in file['variables']:
                 if var.struct_id == i:
                     vars.append(var)
                     continue
@@ -146,7 +146,7 @@ def writer_from_file(file: File, *, path: Path, sheet_name: str) -> None:
             print(s.reader(sheet_name, fname), file=fh)
         fn_body = [
             f'std::cout << "--" << "{f}" << "--" << std::endl;\n\twrite{f.split(".")[0]}();\n\tread{f.split(".")[0]}()'
-            for f in f['filenames']
+            for f in file['filenames']
         ]
         print(cfunc('int', 'main', body=fn_body, vret="0"), file=fh)
 
