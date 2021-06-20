@@ -12,7 +12,7 @@ install()  # install traceback hook
 
 console = Console()
 
-WIN = name == 'nt'
+WIN = name == "nt"
 
 
 @dataclass
@@ -71,7 +71,7 @@ class Editor:
         fd, name = tempfile.mkstemp(prefix="editor-", suffix=self.extension)
 
         try:
-            with open(fd, 'wb') as f:
+            with open(fd, "wb") as f:
                 f.write(data)
 
             self.edit_file(name)
@@ -80,7 +80,7 @@ class Editor:
                 rv = f.read()
 
             if isinstance(text, (bytes, bytearray)):
-                return rv.decode('utf-8-sig').replace('\r\n', '\n')
+                return rv.decode("utf-8-sig").replace("\r\n", "\n")
 
             return rv.decode("utf-8-sig").replace("\r\n", "\n")  # type: ignore
         finally:
@@ -106,6 +106,7 @@ class PromptPath(PromptBase[Path]):
             show_default=show_default,
             show_choices=show_choices,
         )
+
     response_type = Path
 
     def process_response(self, value: str) -> Path:
@@ -118,10 +119,11 @@ class PromptPath(PromptBase[Path]):
             )
         return path.absolute()
 
+
 @dataclass
 class NoStructException(Exception):
     message: str
-    
+
     def __str__(self) -> str:
         return self.message
 
@@ -137,8 +139,8 @@ def edit(text: str):
 
 
 def add_includes(*, libs: list[str]) -> str:
-    lib = ["#include " + (f'<{lib}>' if not "/" in lib else f'"{lib}"') for lib in libs]
-    return '\n'.join(lib) + "\n"
+    lib = ["#include " + (f"<{lib}>" if not "/" in lib else f'"{lib}"') for lib in libs]
+    return "\n".join(lib) + "\n"
 
 
 def build_cfn(
@@ -154,8 +156,8 @@ def build_cfn(
         body = ["  " + line for line in body]
     return (
         f'{ret} {name}({", ".join(params or [])})\n'  # returntype functionName(type varname, for all params)
-        + '{\n'  # {
-        + (';\n'.join(body) + ';\n' if body else '')  # function body
-        + (f'  return {vret};\n' if ret != 'void' else '')
-        + '};\n'  # return varname;  # };
+        + "{\n"  # {
+        + (";\n".join(body) + ";\n" if body else "")  # function body
+        + (f"  return {vret};\n" if ret != "void" else "")
+        + "};\n"  # return varname;  # };
     )
