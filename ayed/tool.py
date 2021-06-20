@@ -4,7 +4,7 @@ import sys
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from re import compile
+from re import compile as rcompile
 
 PACKAGE_PARENT = '..'
 SCRIPT_DIR = os.path.dirname(
@@ -25,14 +25,14 @@ from ayed.utils import (
 )
 from rich.prompt import Confirm
 
-nfields = compile(
+nfields = rcompile(
     r'struct (?P<struct>\w+)\s*{|\s*'  # struct name
     r'(?P<type>[char|signed char|unsigned char|short|short int|signed short|signed short int|unsigned short'  # data types
     r'|unsigned short int|int|signed|signed int|unsigned|unsigned int|long|long int|signed long|signed long int|unsigned long|unsigned long int'
     r'|long long|long long int|signed long long|signed long long int|unsigned long long|unsigned long long int|float|double|long double|\w]+)\s'
     r'(?P<identifier>\w+)(?P<cstr>\[\d*\])?;\s*?|(?P<ENDLINE>};)*'  # variable name | char array | };
 )
-char_array = compile(r'\[(\d*)\]')
+char_array = rcompile(r'\[(\d*)\]')
 
 
 @dataclass

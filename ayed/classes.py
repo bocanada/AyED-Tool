@@ -3,7 +3,7 @@ from pathlib import Path
 from random import sample
 from string import ascii_lowercase
 from struct import Struct as CStruct
-from typing import Any, BinaryIO, Iterable, Optional, TypedDict
+from typing import Any, Iterable, Optional, TypedDict
 
 from rich.table import Table
 
@@ -92,8 +92,8 @@ class Struct(Iterable[Variable]):
     cstruct: CStruct = field(init=False)
 
     def __post_init__(self):
-        format = "".join(ctype.format_character() for ctype in self.fields)
-        self.cstruct = CStruct(format)
+        c_fmt = "".join(ctype.format_character() for ctype in self.fields)
+        self.cstruct = CStruct(c_fmt)
 
     def __iter__(self):
         yield from self.fields
