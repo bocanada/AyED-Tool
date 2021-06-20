@@ -37,6 +37,7 @@ char_array = compile(r'\[(\d*)\]')
 
 @dataclass
 class Tokenizer:
+    """Struct tokenizer"""
     structs: list[Struct]
 
     def to_str(self) -> str:
@@ -59,6 +60,7 @@ class Tokenizer:
         return s
 
     def to_file(self, path: Path) -> None:
+        """Writes all the structs and functions to output_files/path"""
         fns = self.to_str()
         out = Path('output_files')
         out.mkdir(exist_ok=True)
