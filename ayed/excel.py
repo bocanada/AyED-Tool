@@ -40,16 +40,18 @@ class Excel:
 
     def read_sheets(self) -> FILES:
         files = []
-        assert (
+        if not (
             isinstance(self.df, dict) or self.df
-        ), 'Maybe you meant to use "read_sheet".'
+        ):
+            raise AssertionError('Maybe you meant to use "read_sheet".')
         with console.status("Parsing structs...") as _:
             for sheet_name, data in self.df.items():
                 data = data.dropna(axis='columns', how='all')
                 file = File(filenames=[], structs=[], variables=[])
                 self.read_sheet(file=file, df=data)
                 files.append({sanitize_name(sheet_name): file})  # type: ignore
-                assert len(file['filenames']) == len(file['structs'])
+                if len(file['filenames']) != len(file['structs']):
+                    raise AssertionError
                 console.log(f'Found {len(file["structs"])} structs 🙉', justify='center')
             return files
 
@@ -61,9 +63,10 @@ class Excel:
     ) -> File:
         if df is None:
             df = self.df  # type: ignore
-        assert isinstance(
+        if not isinstance(
             df, (DataFrame, Series)
-        ), "You should probably use read_sheets"
+        ):
+            raise AssertionError("You should probably use read_sheets")
         df = df.dropna(axis='columns', how='all')
         if not file:
             file = File(filenames=[], structs=[], variables=[])
@@ -102,7 +105,8 @@ class Excel:
 
 
 def write_one(file: File, *, sheet_name: str, unpack: Optional[bool] = True) -> None:
-    assert sheet_name is not None
+    if sheet_name is None:
+        raise AssertionError
     sheet_name = sanitize_name(sheet_name)
     for i, fname in enumerate(file['filenames']):
         vars: list[Variable] = []

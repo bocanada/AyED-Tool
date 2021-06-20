@@ -137,7 +137,8 @@ class Struct(Iterable[Variable]):
 
     def unpack(self, filepath: Path) -> None:
         """Reads struct data written with `pack` from `filepath`"""
-        assert filepath.exists(), "Path doesn't exist"
+        if not filepath.exists():
+            raise AssertionError("Path doesn't exist")
         data_len = len(self.fields[0].data)
         table = Table(
             highlight=True,
