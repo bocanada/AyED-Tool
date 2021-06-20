@@ -100,6 +100,7 @@ class Struct(Iterable[Variable]):
     def __iter__(self):
         yield from self.fields
 
+    # TODO: Use a different separator when reading a struct
     def to_str(self, sep: Optional[str] = '-') -> str:
         name = self.name[0].lower()
         variables: list[str] = []
@@ -122,7 +123,7 @@ class Struct(Iterable[Variable]):
         return self.cstruct.size
 
     def pack(self, file_name: str, *, unpack: Optional[bool] = True) -> None:
-        """Writes the struct data to `file_path`"""
+        """Writes the raw bytes of the struct to `file_path`"""
         filepath = Path('output_files')
         if not filepath.exists():
             filepath.mkdir()
