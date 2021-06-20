@@ -1,4 +1,3 @@
-import time
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional, Union
@@ -51,7 +50,7 @@ class Excel:
                 self.read_sheet(file=file, df=data)
                 files.append({sanitize_name(sheet_name): file})  # type: ignore
                 assert len(file['filenames']) == len(file['structs'])
-                console.log(f'Found {len(file["structs"])} structs')
+                console.log(f'Found {len(file["structs"])} structs 🙉', justify='center')
             return files
 
     def read_sheet(
