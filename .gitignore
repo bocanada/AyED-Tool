@@ -5,3 +5,5 @@ ayed/qtapp.ui
 .mypy_cache
 .pytest_cache
 .venv
+output_files
+AlgoritmosFiles.xlsx
