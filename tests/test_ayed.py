@@ -1,10 +1,32 @@
 from pathlib import Path
-from ayed import __version__
-from ayed import Tokenizer
+from ayed.tool import Tokenizer
+from pytest import raises
 
 
-def test_version() -> None:
-    assert __version__ == "0.1.0"
+def test_build_cfn():
+    from ayed.utils import build_cfn
+
+    f = """int fib(int n)\n{
+  return fib(n - 1) + fib(n - 2);
+};
+"""
+    assert f == build_cfn(
+        'int', 'fib', params=['int n'], vret='fib(n - 1) + fib(n - 2)'
+    )
+
+
+def test_includes():
+    from ayed.utils import add_includes
+
+    r = "#include <stdio>\n#include \"libreria/something/something\"\n"
+    assert r == add_includes(libs=['stdio', 'libreria/something/something'])
+
+
+def test_editoerror():
+    from ayed.utils import edit
+
+    with raises(SystemExit) as e:
+        edit("#code here")
 
 
 def test_tfrom_str() -> None:
@@ -23,6 +45,8 @@ def test_tfrom_str() -> None:
     t = Tokenizer.from_path(Path('tests/structs/structs.cpp'))
     r = t.structs[0].from_str()
     assert r == result
+
+
 def test_todebug() -> None:
     result = """std::string equipoToDebug(Equipo e)
 {
@@ -38,6 +62,7 @@ def test_todebug() -> None:
     t = Tokenizer.from_path(Path('tests/structs/structs.cpp'))
     r = t.structs[0].to_debug()
     assert r == result
+
 
 def test_from_str() -> None:
     result = """Equipo equipoFromString(std::string s)
