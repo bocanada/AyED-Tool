@@ -8,7 +8,6 @@ from rich.prompt import InvalidResponse, Prompt, PromptBase
 from rich.text import TextType
 from rich.traceback import install
 
-
 console = Console()
 
 install(console=console)  # install traceback hook
@@ -155,6 +154,8 @@ def build_cfn(
     """Builds a Cpp function"""
     if body:
         body = ["  " + line for line in body]
+    if ret == "string":
+        ret = "std::string"
     return (
         f'{ret} {name}({", ".join(params or [])})\n'  # returntype functionName(type varname, for all params)
         + '{\n'  # {
