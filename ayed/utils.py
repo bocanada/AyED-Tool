@@ -106,6 +106,7 @@ class PromptPath(PromptBase[Path]):
             show_default=show_default,
             show_choices=show_choices,
         )
+
     response_type = Path
 
     def process_response(self, value: str) -> Path:
@@ -118,10 +119,11 @@ class PromptPath(PromptBase[Path]):
             )
         return path.absolute()
 
+
 @dataclass
 class NoStructException(Exception):
     message: str
-    
+
     def __str__(self) -> str:
         return self.message
 
@@ -137,7 +139,7 @@ def edit(text: str):
 
 
 def add_includes(*, libs: list[str]) -> str:
-    lib = ["#include " + (f'<{lib}>' if not "/" in lib else f'"{lib}"') for lib in libs]
+    lib = ["#include " + (f'<{lib}>' if "/" not in lib else f'"{lib}"') for lib in libs]
     return '\n'.join(lib) + "\n"
 
 

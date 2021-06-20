@@ -62,7 +62,7 @@ class Variable:
     def type_to_str(self) -> str:
         return (
             f"{self.type.lower()}ToString"
-            if not self.type in C_DTYPES
+            if self.type not in C_DTYPES
             else ""  # if type not in C_DTYPES, either return '' or tToString
             if self.type == "char"
             else "std::to_string"
