@@ -1,10 +1,16 @@
-from string import ascii_lowercase
-from typing import Any, Iterable, Optional, TypedDict
 from dataclasses import dataclass, field
+from pathlib import Path
 from random import sample
+from string import ascii_lowercase
+from struct import Struct as CStruct
+from typing import Any, Iterable, Optional, TypedDict
+
+from rich.console import Console
+from rich.table import Table
 
 ascii_lowercase = ''.join(x for x in ascii_lowercase if x != 'x')
 
+console = Console()
 C_DTYPES = {
     'char',
     'signed char',
@@ -42,7 +48,7 @@ C_DTYPES = {
 class Variable:
     type: str
     name: str
-    ctype: Optional[str] = None
+    ctype: Optional[int] = None
     data: list[Any] = field(
         default_factory=list
     )  # the data that the variable holds. Used when loading an excel file
@@ -66,6 +72,11 @@ class Variable:
         if self.ctype:
             return 'strcpy'
         return {'int': 'stoi'}.get(self.type, f'{self.type.lower()}FromString')
+
+    def format_character(self) -> str:
+        if self.ctype:
+            return f'{self.ctype}s'
+        return {'int': 'i', 'long': 'long', 'double': 'd'}.get(self.type, 'c')
 
 
 class File(TypedDict):
@@ -98,6 +109,11 @@ def cfunc(
 class Struct(Iterable[Variable]):
     name: str
     fields: tuple[Variable, ...]
+    cstruct: CStruct = field(init=False)
+
+    def __post_init__(self):
+        format = ''.join(ctype.format_character() for ctype in self.fields)
+        self.cstruct = CStruct(format)
 
     def __iter__(self):
         yield from self.fields
@@ -119,49 +135,36 @@ class Struct(Iterable[Variable]):
             params=[f'{self.name} {name}'],
         )
 
-    def reader(self, folder_name: str, file_name: str) -> str:
-        fname = file_name.split('.')[0]
-        fname = f'read{fname}'
-        while_loop = (
-            "while (!feof(f)) {\n"
-            f"\t\tstd::cout << {self.name.lower()}ToDebug(x) << std::endl;\n\t\tfread(&x, sizeof({self.name}), 1, f);"
-            "\n\t}"
-        )
-        body = [
-            f'FILE* f = fopen("{folder_name}/{file_name}", "r+b")',
-            f'{self.name} x' + "{}",
-            f'fread(&x, sizeof({self.name}), 1, f)',
-            while_loop,
-            'fclose(f)',
-        ]
-        return cfunc('void', fname, body=body)
+    @property
+    def size(self):
+        return self.cstruct.size
 
-    def writer(self, folder_name: str, file_name: str) -> str:
-        fname = file_name.split('.')[0]
-        fname = f'write{fname}'
-        body = [
-            f'std::filesystem::create_directory("{folder_name}")',
-            f'FILE* f = fopen("{folder_name}/{file_name}", "w+b")',
-            f'{self.name} x' + "{}",
-        ]
-        size = len(self.fields[0].data)
-        for i in range(size):
-            for field in self:
-                if field.type == 'string':
-                    field.type = 'std::string'
-                if field.ctype:
-                    body.append(
-                        f'{field.str_to_type()}(x.{field.name}, "{field.data[i]}")'
-                    )
-                    continue
-                assign = (
-                    f'{field.data[i]}' if field.type != 'char' else f"'{field.data[i]}'"
-                )
-                body.append(f'x.{field.name} = {assign}')
-            body.append(f'fwrite(&x, sizeof({self.name}), 1, f)')
-        body.append('fclose(f)')
-        fn = cfunc('void', fname, vret=None, body=body)
-        return fn
+    def pack(self, file_name: str, *, unpack: Optional[bool] = True) -> None:
+        """Writes the struct data to `file_path`"""
+        filepath = Path('output_files')
+        if not filepath.exists():
+            filepath.mkdir()
+        filepath /= file_name
+        data_len = len(self.fields[0].data)
+        with filepath.open(mode='w+b') as dat:
+            for i in range(data_len):
+                data = [field.data[i] for field in self]
+                bdata = self.cstruct.pack(*data)
+                dat.write(bdata)
+        if unpack:
+            self.unpack(filepath)
+
+    def unpack(self, filepath: Path) -> None:
+        """Reads struct data written with `pack` from `filepath`"""
+        assert filepath.exists(), "Path doesn't exist"
+        table = Table(title=filepath.name, title_justify='center', show_header=True)
+        for field in self.fields:
+            table.add_column(field.name, justify='center')
+        with filepath.open('rb') as dat:
+            while d := dat.read(self.size):
+                written = self.cstruct.unpack(d)
+                table.add_row(*[str(d) for d in written])
+        console.print(table)
 
     def from_str(self) -> str:
         variables: list[str] = [f'{self.name} x' + "{}"]
