@@ -3,7 +3,7 @@ from pathlib import Path
 from random import sample
 from string import ascii_lowercase
 from struct import Struct as CStruct
-from typing import Any, Iterable, Optional, TypedDict
+from typing import Any, Iterable, Optional, TypedDict, BinaryIO
 
 from rich.table import Table
 
@@ -138,7 +138,14 @@ class Struct(Iterable[Variable]):
     def unpack(self, filepath: Path) -> None:
         """Reads struct data written with `pack` from `filepath`"""
         assert filepath.exists(), "Path doesn't exist"
-        table = Table(highlight=True, title=filepath.name, title_justify='center', show_header=True)
+        data_len = len(self.fields[0].data)
+        table = Table(
+            highlight=True,
+            title=f'{filepath.name} - {self.size * data_len} bytes',
+            title_justify='center',
+            show_header=True,
+            show_lines=True,
+        )
         for field in self.fields:
             table.add_column(field.name, justify='center')
         with filepath.open('rb') as dat:
