@@ -1,10 +1,11 @@
 from dataclasses import dataclass
 from os import environ, name, system
 from pathlib import Path
-from typing import Optional
+from typing import Any, Iterable, Optional
 
 from rich.console import Console
 from rich.prompt import InvalidResponse, Prompt, PromptBase
+from rich.table import Table
 from rich.text import TextType
 from rich.traceback import install
 
@@ -163,3 +164,19 @@ def build_cfn(
         + (f'  return {vret};\n' if ret != 'void' else '')
         + '};\n'  # return varname;  # };
     )
+
+
+def create_table(title: str, columns: Iterable[Any], rows: Iterable[Any] = None):
+    table = Table(
+        highlight=True,
+        title=title,
+        title_justify="center",
+        show_header=True,
+        show_lines=True,
+    )
+    for col in columns:
+        table.add_column(col, justify="center")
+    if rows:
+        for row in rows:
+            table.add_row(row)
+    return table
