@@ -118,6 +118,13 @@ class PromptPath(PromptBase[Path]):
             )
         return path.absolute()
 
+@dataclass
+class NoStructException(Exception):
+    message: str
+    
+    def __str__(self) -> str:
+        return self.message
+
 
 prompt = Prompt
 
