@@ -1,4 +1,5 @@
-from dataclasses import dataclass, field as dfield
+from dataclasses import dataclass
+from dataclasses import field as dfield
 from pathlib import Path
 from random import sample
 from string import ascii_lowercase
