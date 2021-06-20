@@ -40,14 +40,14 @@ class Editor:
         from subprocess import Popen
 
         editor = self.get_editor()
-        environ: Optional[dict[str, str]] = None
+        env: Optional[dict[str, str]] = None
 
         if self.env:
-            environ = environ.copy()  # type: ignore
-            environ.update(self.env)
+            env = env.copy()  # type: ignore
+            env.update(self.env)
 
         try:
-            c = Popen(f'{editor} "{filename}"', env=environ, shell=True)
+            c = Popen(f'{editor} "{filename}"', env=env, shell=True)
             exit_code = c.wait()
             if exit_code != 0:
                 raise SystemExit(f"{editor}: Editing failed")
