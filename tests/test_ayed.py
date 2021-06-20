@@ -43,7 +43,7 @@ def test_tfrom_str() -> None:
 };
 """
     t = Tokenizer.from_path(Path('tests/structs/structs.cpp'))
-    r = t.structs[0].from_str()
+    r = t[0].from_str()
     assert r == result
 
 
@@ -60,7 +60,7 @@ def test_todebug() -> None:
 };
 """
     t = Tokenizer.from_path(Path('tests/structs/structs.cpp'))
-    r = t.structs[0].to_debug()
+    r = t[0].to_debug()
     assert r == result
 
 
@@ -83,7 +83,7 @@ def test_from_str() -> None:
   int puntos;
 };"""
     t = Tokenizer.from_str(tr)
-    assert str(t.structs[0].from_str()) == result
+    assert str(t[0].from_str()) == result
 
 
 def test_to_str() -> None:
@@ -93,7 +93,7 @@ def test_to_str() -> None:
 };
 """
     t = Tokenizer.from_path(Path('tests/structs/structs.cpp'))
-    assert str(t.structs[0].to_str('-')) == result
+    assert t[0].to_str() == result
 
 
 def test_fromstr_with_structs() -> None:
@@ -108,7 +108,7 @@ def test_fromstr_with_structs() -> None:
 };
 '''
     t = Tokenizer.from_path(Path('tests/structs/structs3.cpp'))
-    assert str(t.structs[0].from_str()) == result
+    assert str(t[0].from_str()) == result
 
 
 def test_tostr_with_structs() -> None:
@@ -118,4 +118,4 @@ def test_tostr_with_structs() -> None:
 };
 '''
     t = Tokenizer.from_path(Path('tests/structs/structs3.cpp'))
-    assert str(t.structs[0].to_str('-')) == result
+    assert str(t[0].to_str()) == result
