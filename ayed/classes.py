@@ -8,6 +8,8 @@ from typing import Any, Iterable, Optional, TypedDict
 from rich.console import Console
 from rich.table import Table
 
+from ayed.utils import build_cfn
+
 ascii_lowercase = ''.join(x for x in ascii_lowercase if x != 'x')
 
 console = Console()
@@ -85,26 +87,6 @@ class File(TypedDict):
     variables: list[Variable]
 
 
-def cfunc(
-    ret: str,
-    name: str,
-    *,
-    params: Optional[list[str]] = None,
-    body: Optional[list[str]] = None,
-    vret: Optional[str] = None,
-) -> str:
-    """Builds a C function"""
-    if body:
-        body = ["  " + line for line in body]
-    return (
-        f'{ret} {name}({", ".join(params or [])})\n'  # returntype functionName(type varname, for all params)
-        + '{\n'  # {
-        + (';\n'.join(body) + ';\n' if body else '')  # function body
-        + (f'  return {vret};\n' if ret != 'void' else '')
-        + '};\n'  # return varname;  # };
-    )
-
-
 @dataclass
 class Struct(Iterable[Variable]):
     name: str
@@ -128,7 +110,7 @@ class Struct(Iterable[Variable]):
             s = f'{field.type_to_str()}({name}.{field.name})'
             variables.append(s)
         ret = f"+'{sep}'+".join(variables)
-        return cfunc(
+        return build_cfn(
             'std::string',
             f'{self.name.lower()}ToString',
             vret=ret,
@@ -177,7 +159,7 @@ class Struct(Iterable[Variable]):
                     if fn == 'strcpy'
                     else f'x.{field.name} = {fn}(t{i})'
                 )
-        return cfunc(
+        return build_cfn(
             self.name,
             f'{self.name.lower()}FromString',
             vret='x',
@@ -194,7 +176,7 @@ class Struct(Iterable[Variable]):
                 + (' << ", "' if i != len(self.fields) - 1 else '')
             )
         body.append('sout << "};"')
-        return cfunc(
+        return build_cfn(
             'std::string',
             f'{self.name.lower()}ToDebug',
             params=[f'{self.name} {name}'],
@@ -217,7 +199,7 @@ class Struct(Iterable[Variable]):
                 continue
             line = f"x.{field.name} = {vnames[i]}"
             body.append(line)
-        return cfunc(
+        return build_cfn(
             self.name, f'new{self.name}', vret='x', params=parameters, body=body
         )
 
