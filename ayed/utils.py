@@ -1,5 +1,15 @@
 from typing import Optional
 
+from rich.console import Console
+from rich.prompt import Prompt
+from rich.traceback import install
+
+install()  # install traceback hook
+
+console = Console()
+
+prompt = Prompt(console=console)
+
 
 def add_includes(*, libs: list[str]) -> str:
     lib = ["#include " + (f'<{lib}>' if not "/" in lib else f'"{lib}"') for lib in libs]
