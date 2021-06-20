@@ -5,14 +5,12 @@ from string import ascii_lowercase
 from struct import Struct as CStruct
 from typing import Any, Iterable, Optional, TypedDict
 
-from rich.console import Console
 from rich.table import Table
 
-from ayed.utils import build_cfn
+from ayed.utils import build_cfn, console
 
 ascii_lowercase = ''.join(x for x in ascii_lowercase if x != 'x')
 
-console = Console()
 C_DTYPES = {
     'char',
     'signed char',
@@ -140,7 +138,7 @@ class Struct(Iterable[Variable]):
     def unpack(self, filepath: Path) -> None:
         """Reads struct data written with `pack` from `filepath`"""
         assert filepath.exists(), "Path doesn't exist"
-        table = Table(title=filepath.name, title_justify='center', show_header=True)
+        table = Table(highlight=True, title=filepath.name, title_justify='center', show_header=True)
         for field in self.fields:
             table.add_column(field.name, justify='center')
         with filepath.open('rb') as dat:
