@@ -1,4 +1,4 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field as dfield
 from pathlib import Path
 from random import sample
 from string import ascii_lowercase
@@ -49,7 +49,7 @@ class Variable:
     type: str
     name: str
     ctype: Optional[int] = None
-    data: list[Any] = field(
+    data: list[Any] = dfield(
         default_factory=list
     )  # the data that the variable holds. Used when loading an excel file
     struct_id: Optional[int] = None
@@ -89,7 +89,7 @@ class File(TypedDict):
 class Struct(Iterable[Variable]):
     name: str
     fields: tuple[Variable, ...]
-    cstruct: CStruct = field(init=False)
+    cstruct: CStruct = dfield(init=False)
 
     def __post_init__(self):
         c_fmt = "".join(ctype.format_character() for ctype in self.fields)
@@ -147,7 +147,7 @@ class Struct(Iterable[Variable]):
             show_header=True,
             show_lines=True,
         )
-        for field in self.fields:
+        for field in self:
             table.add_column(field.name, justify="center")
         with filepath.open("rb") as dat:
             while d := dat.read(self.size):
