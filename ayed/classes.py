@@ -152,7 +152,7 @@ class Struct(Iterable[Variable]):
             while d := dat.read(self.size):
                 written = self.cstruct.unpack(d)
                 table.add_row(*[str(d) for d in written])
-        console.print(table)
+        console.print(table, justify='center')
 
     def from_str(self) -> str:
         variables: list[str] = [f'{self.name} x' + "{}"]
@@ -213,7 +213,7 @@ class Struct(Iterable[Variable]):
         fns = f"struct {self.name} " + "{\n"
         for field in self:
             fns += f"  {field.type} {field.name}" + (
-                f'{field.ctype};\n' if field.ctype else ';\n'
+                f'[{field.ctype}];\n' if field.ctype else ';\n'
             )
         fns += "};\n"
         return fns
