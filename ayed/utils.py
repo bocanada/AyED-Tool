@@ -8,9 +8,10 @@ from rich.prompt import InvalidResponse, Prompt, PromptBase
 from rich.text import TextType
 from rich.traceback import install
 
-install()  # install traceback hook
 
 console = Console()
+
+install(console=console)  # install traceback hook
 
 WIN = name == 'nt'
 
