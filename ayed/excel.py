@@ -1,14 +1,14 @@
+import time
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Optional, Union
 from unicodedata import category, normalize
 
 from pandas import DataFrame, Series, isna, read_excel
-
-from typing import Optional, Union
-
 from regex import compile
 
 from ayed.classes import C_DTYPES, File, Struct, Variable
+from ayed.utils import console
 
 char_array = compile(r'char\[(\d*)\]')
 
@@ -44,15 +44,15 @@ class Excel:
         assert (
             isinstance(self.df, dict) or self.df
         ), 'Maybe you meant to use "read_sheet".'
-        for sheet_name, data in self.df.items():
-            print(f"Reading... {sheet_name}")
-            data = data.dropna(axis='columns', how='all')
-            file = File(filenames=[], structs=[], variables=[])
-            self.read_sheet(file=file, df=data)
-            files.append({sanitize_name(sheet_name): file})  # type: ignore
-            assert len(file['filenames']) == len(file['structs'])
-            print(f'Found {len(file["structs"])} structs')
-        return files
+        with console.status("Parsing structs...") as _:
+            for sheet_name, data in self.df.items():
+                data = data.dropna(axis='columns', how='all')
+                file = File(filenames=[], structs=[], variables=[])
+                self.read_sheet(file=file, df=data)
+                files.append({sanitize_name(sheet_name): file})  # type: ignore
+                assert len(file['filenames']) == len(file['structs'])
+                console.log(f'Found {len(file["structs"])} structs')
+            return files
 
     def read_sheet(
         self,
@@ -123,10 +123,3 @@ def write_many(files: FILES, *, unpack: Optional[bool] = True) -> None:
     for file in files:
         for (sheet_name, fh) in file.items():
             write_one(fh, sheet_name=sheet_name, unpack=unpack)
-
-
-if __name__ == "__main__":
-    excel = Excel('./ayed/AlgoritmosFiles.xlsx')
-    excel.read()
-    f = excel.read_sheets()
-    write_many(f)
