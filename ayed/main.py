@@ -128,13 +128,13 @@ def main():
         )
     else:
         path = PromptPath.ask(
-            "Enter path 👀",
+            "[b]Enter path[/b] 👀",
             console=console,
             default="AlgoritmosFiles.xlsx",
             show_default=True,
         )
         if Confirm.ask(
-            "Por default, esto abrirá el excel y escribirá archivos en output_files/. Continuar?",
+            "Por default, esto abrirá el excel y escribirá archivos en [i]output_files/[/i]. Continuar?",
             default="y",
         ):
             excel = Excel(path)
