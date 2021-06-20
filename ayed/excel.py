@@ -1,28 +1,20 @@
-from copy import deepcopy
-from time import process_time_ns
-import os
-import sys
 from dataclasses import dataclass, field
 from pathlib import Path
-from pprint import pprint
 from unicodedata import category, normalize
 
 from pandas import DataFrame, Series, isna, read_excel
 
-PACKAGE_PARENT = '..'
-SCRIPT_DIR = os.path.dirname(
-    os.path.realpath(os.path.join(os.getcwd(), os.path.expanduser(__file__)))
-)
-sys.path.append(os.path.normpath(os.path.join(SCRIPT_DIR, PACKAGE_PARENT)))
-from re import compile
 from typing import Optional, Union
 
-from ayed.classes import C_DTYPES, File, Struct, Variable, cfunc
+from regex import compile
 
-char_array = compile(r'char(\[\d*\])')
+from ayed.classes import C_DTYPES, File, Struct, Variable
+
+char_array = compile(r'char\[(\d*)\]')
 
 PathLike = Union[Path, str]
 PandasDF = Union[DataFrame, dict[str, DataFrame]]
+Sheet = Union[DataFrame, Series]
 FILES = list[dict[str, File]]
 
 
@@ -56,7 +48,7 @@ class Excel:
             print(f"Reading... {sheet_name}")
             data = data.dropna(axis='columns', how='all')
             file = File(filenames=[], structs=[], variables=[])
-            self.read_sheet(file=file, inplace=True, df=data)
+            self.read_sheet(file=file, df=data)
             files.append({sanitize_name(sheet_name): file})  # type: ignore
             assert len(file['filenames']) == len(file['structs'])
             print(f'Found {len(file["structs"])} structs')
@@ -65,21 +57,17 @@ class Excel:
     def read_sheet(
         self,
         *,
-        df: Optional[Union[DataFrame, Series]] = None,
+        df: Optional[Sheet] = None,
         file: Optional[File] = None,
-        inplace: Optional[bool] = False,
     ) -> File:
-        if not df:
+        if df is None:
             df = self.df  # type: ignore
-        assert isinstance(df, (DataFrame, Series)), "You should probably use read_sheets"
+        assert isinstance(
+            df, (DataFrame, Series)
+        ), "You should probably use read_sheets"
         df = df.dropna(axis='columns', how='all')
-        file = (
-            File(filenames=[], structs=[], variables=[])
-            if not file
-            else file
-            if not inplace
-            else deepcopy(file)
-        )
+        if not file:
+            file = File(filenames=[], structs=[], variables=[])
         for (_, content) in df.iteritems():
             if content.empty:
                 continue
@@ -103,66 +91,42 @@ class Excel:
                         continue
                     if (c := char_array.match(item)) or item in C_DTYPES:
                         var.type = item.split('[')[0]
-                        var.ctype = c[1] if c else None
+                        var.ctype = int(c[1]) if c else None
                         continue
                 var.struct_id = len(file['structs']) - 1
                 var.file_id = len(file['filenames']) - 1
-                var.data.append(item)
+                var.data.append(
+                    item if not var.ctype else item.ljust(var.ctype).encode('utf-8')
+                )
             file['variables'].append(var)
         return file
 
 
-def add_includes(*, libs: list[str]) -> str:
-    lib = ["#include " + (f'<{lib}>' if not "/" in lib else f'"{lib}"') for lib in libs]
-    return '\n'.join(lib)
-
-
-def writer_from_file(file: File, *, path: Path, sheet_name: str) -> None:
+def write_one(file: File, *, sheet_name: str, unpack: Optional[bool] = True) -> None:
     assert sheet_name is not None
     sheet_name = sanitize_name(sheet_name)
-    with (path / (sheet_name + ".cpp")).open(mode='w') as fh:
-        print(
-            add_includes(
-                libs=[
-                    'filesystem',
-                    'cstdio',
-                    'iostream',
-                    'cstring',
-                    'string',
-                ],
-            ),
-            file=fh,
-        )
-        for i, fname in enumerate(file['filenames']):
-            vars: list[Variable] = []
-            for var in file['variables']:
-                if var.struct_id == i:
-                    vars.append(var)
-                    continue
-            s = Struct(name=file['structs'][i], fields=tuple(vars))
-            print(s, file=fh)
-            print(s.to_debug(), file=fh)
-            print(s.writer(sheet_name, fname), file=fh)
-            print(s.reader(sheet_name, fname), file=fh)
-        fn_body = [
-            f'std::cout << "--" << "{f}" << "--" << std::endl;\n\twrite{f.split(".")[0]}();\n\tread{f.split(".")[0]}()'
-            for f in file['filenames']
-        ]
-        print(cfunc('int', 'main', body=fn_body, vret="0"), file=fh)
+    for i, fname in enumerate(file['filenames']):
+        vars: list[Variable] = []
+        for var in file['variables']:
+            if var.struct_id == i:
+                vars.append(var)
+                continue
+        s = Struct(name=file['structs'][i], fields=tuple(vars))
+        s.pack(fname, unpack=unpack)  # packs the struct into output_files/fname
 
 
-def writers_from_file(files: FILES) -> None:
+def write_many(files: FILES, *, unpack: Optional[bool] = True) -> None:
     if not isinstance(files, list):
         raise ValueError(
             f'Expected {list} of {dict} but got {type(files)}. Try using struct_from_file instead.'
         )
     for file in files:
-        for (sheet_name, f) in file.items():
-            writer_from_file(f, path=Path("output_files"), sheet_name=sheet_name)
+        for (sheet_name, fh) in file.items():
+            write_one(fh, sheet_name=sheet_name, unpack=unpack)
 
 
 if __name__ == "__main__":
     excel = Excel('./ayed/AlgoritmosFiles.xlsx')
     excel.read()
-    f = excel.read_sheet()
-    writer_from_file(f, path=Path("output_files"), sheet_name=excel.sheet)
+    f = excel.read_sheets()
+    write_many(f)
