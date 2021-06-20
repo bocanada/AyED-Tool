@@ -9,6 +9,9 @@ name = "python"
 enabled = true
 
   [analyzers.meta]
+  max_line_length = 88
+  skip_string_normalization = true
+  type_checker = "mypy"
   runtime_version = "3.x.x"
 
 [[transformers]]
