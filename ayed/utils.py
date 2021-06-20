@@ -19,12 +19,12 @@ WIN = name == 'nt'
 @dataclass
 class Editor:
     extension: Optional[str] = ".cpp"
-    editor: Optional[str] = None
+    path: Optional[str] = None
     env: Optional[dict[str, str]] = None
 
     def get_editor(self) -> str:
-        if self.editor is not None:
-            return self.editor
+        if self.path is not None:
+            return self.path
         for key in "VISUAL", "EDITOR":
             rv = environ.get(key)
             if rv:
