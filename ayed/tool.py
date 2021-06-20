@@ -86,7 +86,9 @@ class Tokenizer:
             ctype = int(is_ctype[1]) if is_ctype else 0
             struct['fields'].append(Variable(ttype.strip(), vname.strip(), ctype))
         if not struct['name']:
-            raise NoStructException("Couldn't find a struct to parse. Make sure the struct is well formatted.")
+            raise NoStructException(
+                "Couldn't find a struct to parse. Make sure the struct is well formatted."
+            )
         return tokens
 
     @classmethod
@@ -117,7 +119,7 @@ def main():
             code = edit(SEPARATOR)
             t = Tokenizer.from_str(code)
         else:
-            path = PromptPath.ask("Enter path", console=console)
+            path = PromptPath.ask("Enter path to a .cpp[,.hpp,.c,.h]", console=console)
             t = Tokenizer.from_path(path)
         dt = datetime.now().strftime("%d-%m-%y-%H%M")
         t.to_file(Path(f'{dt}.hpp'))
@@ -128,7 +130,7 @@ def main():
         )
     else:
         path = PromptPath.ask(
-            "[b]Enter path[/b] 👀",
+            "[b]Enter path to a .xlsx[/b] 👀",
             console=console,
             default="AlgoritmosFiles.xlsx",
             show_default=True,
