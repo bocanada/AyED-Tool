@@ -170,7 +170,7 @@ class Struct(Iterable[Variable]):
             self.name,
             f"{self.name.lower()}FromString",
             vret="x",
-            params=[f"std::string s"],
+            params=["std::string s"],
             body=variables,
         )
 
