@@ -1,20 +1,16 @@
-from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional, Union
+from typing import Optional
 from unicodedata import category, normalize
 
+from attr import dataclass, field
 from pandas import DataFrame, Series, isna, read_excel
 from regex import compile
 
-from ayed.classes import C_DTYPES, File, Struct, Variable
+from ayed.classes import C_DTYPES, Struct, Variable
+from ayed.types import File, Files, PandasDF, PathLike, Sheet
 from ayed.utils import console
 
 char_array = compile(r"char\[(\d*)\]")
-
-PathLike = Union[Path, str]
-PandasDF = Union[DataFrame, dict[str, DataFrame]]
-Sheet = Union[DataFrame, Series]
-FILES = list[dict[str, File]]
 
 
 def sanitize_name(fname: str) -> str:
@@ -23,13 +19,13 @@ def sanitize_name(fname: str) -> str:
     )
 
 
-@dataclass
+@dataclass(slots=True)
 class Excel:
     file_path: PathLike
     sheet: Optional[str] = field(default=None)
     df: Optional[PandasDF] = field(default=None, init=False, repr=False)
 
-    def __post_init__(self):
+    def __attrs_post_init__(self):
         if isinstance(self.file_path, str):
             self.file_path = Path(self.file_path)
 
@@ -38,7 +34,7 @@ class Excel:
             self.sheet = sheet
         self.df = read_excel(self.file_path.absolute().as_uri(), sheet_name=self.sheet)  # type: ignore
 
-    def read_sheets(self) -> FILES:
+    def read_sheets(self) -> Files:
         files = []
         if not (isinstance(self.df, dict) or self.df):
             raise AssertionError('Maybe you meant to use "read_sheet".')
@@ -69,9 +65,7 @@ class Excel:
         for (_, content) in df.iteritems():
             if content.empty:
                 continue
-            var = Variable(
-                file_id=0, struct_id=0, type="", name="", ctype=None, data=[]
-            )
+            var = Variable(type="", name="", ctype=None)
             for item in content.values:
                 if isna(item):
                     continue
@@ -114,7 +108,7 @@ def write_one(file: File, *, sheet_name: str, unpack: Optional[bool] = True) -> 
         s.pack(fname, unpack=unpack)  # packs the struct into output_files/fname
 
 
-def write_many(files: FILES, *, unpack: Optional[bool] = True) -> None:
+def write_many(files: Files, *, unpack: Optional[bool] = True) -> None:
     if not isinstance(files, list):
         raise ValueError(
             f"Expected {list} of {dict} but got {type(files)}. Try using struct_from_file instead."
