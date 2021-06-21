@@ -5,8 +5,9 @@ import os
 import sys
 from datetime import datetime
 from pathlib import Path
+from typing import Final, Optional
 
-from rich.prompt import Confirm
+from typer import Argument, Option, Typer
 
 PACKAGE_PARENT = '..'
 SCRIPT_DIR = os.path.dirname(
@@ -15,11 +16,14 @@ SCRIPT_DIR = os.path.dirname(
 sys.path.append(os.path.normpath(os.path.join(SCRIPT_DIR, PACKAGE_PARENT)))
 
 
-from ayed.excel import Excel, write_many
+from ayed.excel import Excel, write_many, write_one
 from ayed.parser import Tokenizer
 from ayed.printer import Printer
 from ayed.types import Structs
-from ayed.utils import PromptPath, console, edit, prompt
+from ayed.utils import console, edit
+
+app = Typer(name='AyED tools')
+DEFAULT_EXCEL: Final = Path("AlgoritmosFiles.xlsx")
 
 
 def open_editor() -> Structs:
@@ -28,16 +32,29 @@ def open_editor() -> Structs:
     return Tokenizer.from_str(code)
 
 
-def ask_filepath() -> Structs:
-    path = PromptPath.ask("Enter path to a .cpp[,.hpp,.c,.h]", console=console)
-    return Tokenizer.from_path(path)
+@app.command(name='coll')
+def coll_fn_gen(
+    path: Path = Option(
+        None,
+        "--path",
+        "-p",
+        exists=True,
+        dir_okay=False,
+        help="La dirección del archivo .cpp[,.hpp,.c,.h] que contiene a los structs",
+    )
+) -> None:
+    """
+    Crea las funciones newT, TToString, TFromString, TToDebug para un struct T.
 
+    Por default, abre un editor en el que podrán escribir/copy-paste sus structs.
 
-def coll_fn_gen() -> Structs:
-    if Confirm.ask("[b]Open editor?", default='y'):
+    Si ya tienen un archivo y no quieren que se abra el editor, pueden usar
+    -p o --path [PATH], siendo [PATH] el nombre del archivo
+    """
+    if not path:
         structs = open_editor()
     else:
-        structs = ask_filepath()
+        structs = Tokenizer.from_path(path)
     dt = datetime.now().strftime("%d-%m-%y-%H%M")
     Printer.from_tokens(structs).to_file(Path(f'{dt}.hpp'))
     written_structs = ', '.join(struct.name for struct in structs)
@@ -46,44 +63,45 @@ def coll_fn_gen() -> Structs:
         f" TfromString and newT for {written_structs}",
         justify='center',
     )
-    return structs
+    console.log("[b white]Done! Bye! 👋", justify='center')
 
 
-def open_excel() -> None:
-    path = PromptPath.ask(
-        "[b]Enter path to a .xlsx[/b] 👀",
-        console=console,
-        default="AlgoritmosFiles.xlsx",
-        show_default=True,
-    )
-    if Confirm.ask(
-        "Por default, esto abrirá el excel y escribirá archivos en "
-        "[i]output_files/[...].dat[/i]. Continuar?",
-        default="y",
-    ):
-        excel = Excel(path)
-        excel.read()
-        f = excel.read_sheets()
-        write_many(f)
+@app.command(
+    name='files',
+)
+def open_excel(
+    path: Path = Argument(
+        DEFAULT_EXCEL,
+        help="La dirección del .xlsx",
+        dir_okay=False,
+        exists=True,
+    ),
+    sheet: Optional[str] = Option(
+        None, '-s', '--sheet', help="El nombre de la solapa/sheet"
+    ),
+    read: bool = Option(True, help="Lee las estructuras guardadas en el .dat"),
+) -> None:
+    """Por default, abre el excel `AlgoritmosFiles.xlsx` en la carpeta en la que
+    estén y lee todas sus solapas.
 
+    Si el excel está en otro lugar, pueden especificar la dirección del archivo.xlsx
+    después del nombre del programa,
+    ej: ayed files home/bocanada/Documents/AlgoritmosFiles.xlsx.
 
-def main() -> None:
-    console.print(
-        "1. [b white]Coll fn generator[/b white]\n"
-        "2. [b white]Files generator[/b white]",
-    )
-    option = prompt.ask(
-        console=console,
-        prompt="[b]Option",
-        choices=['1', '2'],
-        show_choices=True,
-    )
-    if option == "1":
-        coll_fn_gen()
+    Usen -s o --sheet [SHEET] para especificar una solapa, siendo [SHEET] la solapa.
+
+    Si utilizan --no-read, el programa no leerá los archivos para mostrarlos.
+    """
+    excel = Excel(path)
+    excel.read(sheet=sheet)
+    if sheet:
+        f = excel.read_sheet()
+        write_one(f, sheet_name=sheet, unpack=read)
     else:
-        open_excel()
+        f = excel.read_sheets()
+        write_many(f, unpack=read)
     console.log("[b white]Done! Bye! 👋", justify='center')
 
 
 if __name__ == "__main__":
-    main()
+    app()
