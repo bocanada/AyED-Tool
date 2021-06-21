@@ -4,7 +4,7 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
-PACKAGE_PARENT = '..'
+PACKAGE_PARENT = ".."
 SCRIPT_DIR = os.path.dirname(
     os.path.realpath(os.path.join(os.getcwd(), os.path.expanduser(__file__)))
 )
@@ -20,7 +20,7 @@ from ayed.utils import PromptPath, console, edit, prompt
 
 
 def open_editor() -> Structs:
-    SEPARATOR = '// write your code below'
+    SEPARATOR = "// write your code below"
     code = edit(SEPARATOR)
     return Tokenizer.from_str(code)
 
@@ -31,16 +31,16 @@ def ask_filepath() -> Structs:
 
 
 def coll_fn_gen() -> Structs:
-    if Confirm.ask("[b]Open editor?", default='y'):
+    if Confirm.ask("[b]Open editor?", default="y"):
         structs = open_editor()
     else:
         structs = ask_filepath()
     dt = datetime.now().strftime("%d-%m-%y-%H%M")
-    Printer.from_tokens(structs).to_file(Path(f'{dt}.hpp'))
-    written_structs = ', '.join(struct.name for struct in structs)
+    Printer.from_tokens(structs).to_file(Path(f"{dt}.hpp"))
+    written_structs = ", ".join(struct.name for struct in structs)
     console.print(
         f"[b yellow]Wrote TtoDebug, TtoString, TfromString and newT for {written_structs}",
-        justify='center',
+        justify="center",
     )
     return structs
 
@@ -70,7 +70,7 @@ def main():
     option = prompt.ask(
         console=console,
         prompt="[b]Option",
-        choices=['1', '2'],
+        choices=["1", "2"],
         show_choices=True,
     )
     if option == "1":
@@ -80,4 +80,4 @@ def main():
 
 if __name__ == "__main__":
     main()
-    console.log("[b white]Done! Bye! 👋", justify='center')
+    console.log("[b white]Done! Bye! 👋", justify="center")

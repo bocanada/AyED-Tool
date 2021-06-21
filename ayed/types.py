@@ -19,9 +19,10 @@ class File(TypedDict):
 
 Files = list[dict[str, File]]
 
+
 @dataclass
 class ReadSheetException(Exception):
     message: str
-    
+
     def __str__(self) -> str:
         return self.message

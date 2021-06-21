@@ -199,7 +199,7 @@ class Struct(Iterable[Variable]):
             line = f"x.{field.name} = {vnames[i]}"
             body.append(line)
         return build_cfn(
-            self.name, f'new{self.name}', params=params, body=body, vret="x"
+            self.name, f"new{self.name}", params=params, body=body, vret="x"
         )
 
     def __str__(self) -> str:
