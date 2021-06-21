@@ -12,11 +12,3 @@ enabled = true
   max_line_length = 88
   type_checker = "mypy"
   runtime_version = "3.x.x"
-
-[[transformers]]
-name = "black"
-enabled = true
-
-[[transformers]]
-name = "isort"
-enabled = true
