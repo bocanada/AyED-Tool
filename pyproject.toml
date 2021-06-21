@@ -15,8 +15,9 @@ rich = "^10.4.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
-mypy = "^0.902"
 black = "^21.6b0"
+mypy = {git = "https://github.com/python/mypy"}
+flake8-bugbear = "^21.4.3"
 
 [tool.poetry.scripts]
 ayed = 'ayed.tool:main'
