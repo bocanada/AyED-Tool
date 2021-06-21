@@ -4,8 +4,7 @@ from string import ascii_lowercase
 from struct import Struct as CStruct
 from typing import Any, Iterable, Iterator, Optional
 
-from attr import Factory, dataclass
-from attr import field as dfield
+import attr
 
 from ayed.utils import build_cfn, console, create_table
 
@@ -44,16 +43,16 @@ C_DTYPES: set[str] = {
 }
 
 
-@dataclass(slots=True, str=False)
+@attr.s(slots=True, init=True)
 class Variable:
-    type: str
-    name: str
-    ctype: Optional[int] = dfield(
+    type: str = attr.ib()
+    name: str = attr.ib()
+    data: list[Any] = attr.ib(init=False, factory=list)
+    ctype: Optional[int] = attr.ib(
         default=0, validator=lambda __, _, v: v is not None and isinstance(v, int)
     )
-    data: list[Any] = Factory(list)
-    struct_id: Optional[int] = dfield(init=False, default=None, repr=False)
-    file_id: Optional[int] = dfield(init=False, default=None, repr=False)
+    struct_id: Optional[int] = attr.ib(init=False, default=None, repr=False)
+    file_id: Optional[int] = attr.ib(init=False, default=None, repr=False)
 
     def __attrs_post_init___(self) -> None:
         if self.type == "string":
@@ -82,11 +81,11 @@ class Variable:
 Variables = tuple[Variable, ...]
 
 
-@dataclass
+@attr.s(init=True)
 class Struct(Iterable[Variable]):
-    name: str
-    fields: Variables
-    cstruct: CStruct = dfield(init=False)
+    name: str = attr.ib()
+    fields: Variables = attr.ib()
+    cstruct: CStruct = attr.ib(init=False)
 
     def __attrs_post_init__(self) -> None:
         c_fmt = "".join(ctype.format_character() for ctype in self.fields)
