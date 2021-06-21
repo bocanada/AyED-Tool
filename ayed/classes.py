@@ -2,16 +2,16 @@ from pathlib import Path
 from random import sample
 from string import ascii_lowercase
 from struct import Struct as CStruct
-from typing import Any, Iterable, Optional
+from typing import Any, Iterable, Iterator, Optional
 
 from attr import Factory, dataclass
 from attr import field as dfield
 
 from ayed.utils import build_cfn, console, create_table
 
-ascii_lowercase = "".join(x for x in ascii_lowercase if x != "x")
+ascii_lowercase: str = "".join(x for x in ascii_lowercase if x != "x")
 
-C_DTYPES = {
+C_DTYPES: set[str] = {
     "char",
     "signed char",
     "unsigned char",
@@ -55,7 +55,7 @@ class Variable:
     struct_id: Optional[int] = dfield(init=False, default=None, repr=False)
     file_id: Optional[int] = dfield(init=False, default=None, repr=False)
 
-    def __attrs_post_init___(self):
+    def __attrs_post_init___(self) -> None:
         if self.type == "string":
             self.type = "std::string"
 
@@ -88,15 +88,15 @@ class Struct(Iterable[Variable]):
     fields: Variables
     cstruct: CStruct = dfield(init=False)
 
-    def __attrs_post_init__(self):
+    def __attrs_post_init__(self) -> None:
         c_fmt = "".join(ctype.format_character() for ctype in self.fields)
         self.cstruct = CStruct(c_fmt)
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[Variable]:
         yield from self.fields
 
     @property
-    def size(self):
+    def size(self) -> int:
         return self.cstruct.size
 
     def pack(self, file_name: str, *, unpack: Optional[bool] = True) -> None:

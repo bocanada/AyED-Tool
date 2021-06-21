@@ -18,11 +18,11 @@ class Excel:
     sheet: Optional[str] = field(default=None, init=False)
     df: Optional[PandasDF] = field(default=None, init=False, repr=False)
 
-    def __attrs_post_init__(self):
+    def __attrs_post_init__(self) -> None:
         if isinstance(self.file_path, str):
             self.file_path = Path(self.file_path)
 
-    def read(self, *, sheet: Optional[str] = None):
+    def read(self, *, sheet: Optional[str] = None) -> None:
         if sheet:
             self.sheet = sheet
         self.df = read_excel(self.file_path.absolute().as_uri(), sheet_name=self.sheet)  # type: ignore
@@ -39,7 +39,10 @@ class Excel:
                 files.append({sanitize_name(sheet_name): file})  # type: ignore
                 if len(file["filenames"]) != len(file["structs"]):
                     raise AssertionError
-                console.log(f'Found {len(file["structs"])} structs in {sheet_name} 🙉', justify="center")
+                console.log(
+                    f'Found {len(file["structs"])} structs in {sheet_name} 🙉',
+                    justify="center",
+                )
             return files
 
     def read_sheet(

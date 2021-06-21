@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, TypedDict, Union
+from typing import TypedDict, Union
 
 from pandas import DataFrame, Series
 

@@ -1,3 +1,4 @@
+from __future__ import annotations
 from dataclasses import dataclass
 from os import environ, name, system
 from pathlib import Path
@@ -84,7 +85,7 @@ class Editor:
             if isinstance(text, (bytes, bytearray)):
                 return rv.decode("utf-8-sig").replace("\r\n", "\n")
 
-            return rv.decode("utf-8-sig").replace("\r\n", "\n")  # type: ignore
+            return rv.decode("utf-8-sig").replace("\r\n", "\n")
         finally:
             Path(name).unlink()
 
@@ -133,11 +134,12 @@ class NoStructException(Exception):
 prompt = Prompt
 
 
-def edit(text: str):
+def edit(text: str) -> str:
     editor = Editor()
     code = editor.edit(text)
-    code = code.split(text, 1)[1]
-    return code.strip()
+    if code is None:
+        raise NoStructException("Couldn't parse the struct.")
+    return code.split(text, 1)[1].strip()
 
 
 def add_includes(*, libs: list[str]) -> str:
@@ -167,7 +169,9 @@ def build_cfn(
     )
 
 
-def create_table(title: str, columns: Iterable[Any], rows: Iterable[Any] = None):
+def create_table(
+    title: str, columns: Iterable[Any], rows: Iterable[Any] = None
+) -> Table:
     table = Table(
         highlight=True,
         title=title,

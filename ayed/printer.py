@@ -1,3 +1,4 @@
+from __future__ import annotations
 from pathlib import Path
 from typing import Iterable
 
@@ -41,5 +42,5 @@ class Printer:
         console.log(f"[b]Wrote {path.absolute()}[/b]", justify='center')
 
     @classmethod
-    def from_tokens(cls, tokens: Structs):
+    def from_tokens(cls, tokens: Structs) -> Printer:
         return cls(iter(tokens))

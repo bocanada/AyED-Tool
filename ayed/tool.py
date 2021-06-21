@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import annotations
 import os
 import sys
 from datetime import datetime
@@ -63,7 +64,7 @@ def open_excel() -> None:
         write_many(f)
 
 
-def main():
+def main() -> None:
     console.print(
         "1. [b white]Coll fn generator[/b white]\n2. [b white]Files generator[/b white]",
     )
