@@ -1,6 +1,8 @@
 from pathlib import Path
-from ayed.tool import Tokenizer
+
 from pytest import raises
+
+from ayed.tool import Tokenizer
 
 
 def test_build_cfn():
@@ -11,15 +13,15 @@ def test_build_cfn():
 };
 """
     assert f == build_cfn(
-        'int', 'fib', params=['int n'], vret='fib(n - 1) + fib(n - 2)'
+        "int", "fib", params=["int n"], vret="fib(n - 1) + fib(n - 2)"
     )
 
 
 def test_includes():
     from ayed.utils import add_includes
 
-    r = "#include <stdio>\n#include \"libreria/something/something\"\n"
-    assert r == add_includes(libs=['stdio', 'libreria/something/something'])
+    r = '#include <stdio>\n#include "libreria/something/something"\n'
+    assert r == add_includes(libs=["stdio", "libreria/something/something"])
 
 
 def test_editoerror():
@@ -42,7 +44,7 @@ def test_tfrom_str() -> None:
   return x;
 };
 """
-    t = Tokenizer.from_path(Path('tests/structs/structs.cpp'))
+    t = Tokenizer.from_path(Path("tests/structs/structs.cpp"))
     r = t[0].from_str()
     assert r == result
 
@@ -59,7 +61,7 @@ def test_todebug() -> None:
   return sout.str();
 };
 """
-    t = Tokenizer.from_path(Path('tests/structs/structs.cpp'))
+    t = Tokenizer.from_path(Path("tests/structs/structs.cpp"))
     r = t[0].to_debug()
     assert r == result
 
@@ -92,12 +94,12 @@ def test_to_str() -> None:
   return std::to_string(e.idEq)+'-'+(e.nombre)+'-'+std::to_string(e.puntos);
 };
 """
-    t = Tokenizer.from_path(Path('tests/structs/structs.cpp'))
+    t = Tokenizer.from_path(Path("tests/structs/structs.cpp"))
     assert t[0].to_str() == result
 
 
 def test_fromstr_with_structs() -> None:
-    result = '''NEquipo nequipoFromString(std::string s)
+    result = """NEquipo nequipoFromString(std::string s)
 {
   NEquipo x{};
   std::string t0 = getTokenAt(s, '-', 0);
@@ -106,16 +108,16 @@ def test_fromstr_with_structs() -> None:
   x.npuntos = stoi(t1);
   return x;
 };
-'''
-    t = Tokenizer.from_path(Path('tests/structs/structs3.cpp'))
+"""
+    t = Tokenizer.from_path(Path("tests/structs/structs3.cpp"))
     assert str(t[0].from_str()) == result
 
 
 def test_tostr_with_structs() -> None:
-    result = '''std::string nequipoToString(NEquipo n)
+    result = """std::string nequipoToString(NEquipo n)
 {
   return equipoToString(n.e)+'-'+std::to_string(n.npuntos);
 };
-'''
-    t = Tokenizer.from_path(Path('tests/structs/structs3.cpp'))
+"""
+    t = Tokenizer.from_path(Path("tests/structs/structs3.cpp"))
     assert str(t[0].to_str()) == result
