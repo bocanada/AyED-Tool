@@ -127,7 +127,7 @@ class Struct(Iterable[Variable]):
             while d := dat.read(self.size):
                 written = self.cstruct.unpack(d)
                 table.add_row(*[str(d) for d in written])
-        console.print(table, justify="center")
+        console.log(table, justify="center")
 
     # TODO: Use a different separator when reading a struct
     def to_str(self, sep: Optional[str] = "-") -> str:
