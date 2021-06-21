@@ -12,9 +12,11 @@ class Tokenizer:
 
     nfields: Pattern = rcompile(
         r'struct (?P<struct>\w+)\s*{|\s*'  # struct name
-        r'(?P<type>[char|signed char|unsigned char|short|short int|signed short|signed short int|unsigned short'  # data types
-        r'|unsigned short int|int|signed|signed int|unsigned|unsigned int|long|long int|signed long|signed long int|unsigned long|unsigned long int'
-        r'|long long|long long int|signed long long|signed long long int|unsigned long long|unsigned long long int|float|double|long double|\w]+)\s'
+        r'(?P<type>[char|signed char|unsigned char|short|short int|signed short|signed'
+        r'short int|unsigned short|unsigned short int|int|signed|signed int|unsigned|'
+        r'unsigned int|long|long int|signed long|signed long int|unsigned long|unsigned'
+        r' long int|long long|long long int|signed long long|signed long long int|'
+        r'unsigned long long|unsigned long long int|float|double|long double|\w]+)\s'
         r'(?P<identifier>\w+)(?P<cstr>\[\d*\])?;\s*?|(?P<ENDLINE>};)*'
     )
     char_array: Pattern = rcompile(r'\[(\d*)\]')
@@ -36,10 +38,11 @@ class Tokenizer:
                 continue
             is_ctype = Tokenizer.char_array.match(ctype.strip())
             ctype = int(is_ctype[1]) if is_ctype else 0
-            struct['fields'].append(Variable(ttype.strip(), vname.strip(), ctype))
+            struct['fields'].append(Variable(ttype.strip(), vname.strip(), ctype=ctype))
         if not struct['name']:
             raise NoStructException(
-                "Couldn't find a struct to parse. Make sure the struct is well formatted."
+                "Couldn't find a struct to parse."
+                " Make sure the struct is well formatted."
             )
         return tokens
 
