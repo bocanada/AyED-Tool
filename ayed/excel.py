@@ -6,7 +6,8 @@ from pandas import DataFrame, Series, isna, read_excel
 from regex import compile
 
 from ayed.classes import C_DTYPES, Struct, Variable
-from ayed.types import File, Files, PandasDF, PathLike, ReadSheetException, Sheet
+from ayed.types import (File, Files, PandasDF, PathLike, ReadSheetException,
+                        Sheet)
 from ayed.utils import console, sanitize_name
 
 char_array = compile(r"char\[(\d*)\]")
@@ -39,7 +40,10 @@ class Excel:
                 files.append({sanitize_name(sheet_name): file})  # type: ignore
                 if len(file["filenames"]) != len(file["structs"]):
                     raise AssertionError
-                console.log(f'Found {len(file["structs"])} structs in {sheet_name} 🙉', justify="center")
+                console.log(
+                    f'Found {len(file["structs"])} structs in {sheet_name} 🙉',
+                    justify="center",
+                )
             return files
 
     def read_sheet(
@@ -112,4 +116,4 @@ def write_many(files: Files, *, unpack: Optional[bool] = True) -> None:
             write_one(fh, sheet_name=sheet_name, unpack=unpack)
             for (sheet_name, fh) in file.items()
         ):
-            raise ReadSheetException('Failed to read all sheets.')
+            raise ReadSheetException("Failed to read all sheets.")
