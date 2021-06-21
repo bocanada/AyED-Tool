@@ -13,7 +13,7 @@ console = Console()
 
 install(console=console)  # install traceback hook
 
-WIN = name == 'nt'
+WIN = name == "nt"
 
 
 @dataclass
@@ -72,7 +72,7 @@ class Editor:
         fd, name = tempfile.mkstemp(prefix="editor-", suffix=self.extension)
 
         try:
-            with open(fd, 'wb') as f:
+            with open(fd, "wb") as f:
                 f.write(data)
 
             self.edit_file(name)
@@ -81,7 +81,7 @@ class Editor:
                 rv = f.read()
 
             if isinstance(text, (bytes, bytearray)):
-                return rv.decode('utf-8-sig').replace('\r\n', '\n')
+                return rv.decode("utf-8-sig").replace("\r\n", "\n")
 
             return rv.decode("utf-8-sig").replace("\r\n", "\n")  # type: ignore
         finally:
@@ -140,8 +140,8 @@ def edit(text: str):
 
 
 def add_includes(*, libs: list[str]) -> str:
-    lib = ["#include " + (f'<{lib}>' if "/" not in lib else f'"{lib}"') for lib in libs]
-    return '\n'.join(lib) + "\n"
+    lib = ["#include " + (f"<{lib}>" if "/" not in lib else f'"{lib}"') for lib in libs]
+    return "\n".join(lib) + "\n"
 
 
 def build_cfn(
@@ -159,10 +159,10 @@ def build_cfn(
         ret = "std::string"
     return (
         f'{ret} {name}({", ".join(params or [])})\n'  # returntype functionName(type varname, for all params)
-        + '{\n'  # {
-        + (';\n'.join(body) + ';\n' if body else '')  # function body
-        + (f'  return {vret};\n' if ret != 'void' else '')
-        + '};\n'  # return varname;  # };
+        + "{\n"  # {
+        + (";\n".join(body) + ";\n" if body else "")  # function body
+        + (f"  return {vret};\n" if ret != "void" else "")
+        + "};\n"  # return varname;  # };
     )
 
 
