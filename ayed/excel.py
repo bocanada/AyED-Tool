@@ -31,7 +31,7 @@ class Excel:
         files = []
         if not (isinstance(self.df, dict) or self.df):
             raise AssertionError('Maybe you meant to use "read_sheet".')
-        with console.status("Parsing structs...") as _:
+        with console.status("Parsing structs..."):
             for sheet_name, data in self.df.items():
                 data = data.dropna(axis="columns", how="all")
                 file = File(filenames=[], structs=[], variables=[])
@@ -39,7 +39,7 @@ class Excel:
                 files.append({sanitize_name(sheet_name): file})  # type: ignore
                 if len(file["filenames"]) != len(file["structs"]):
                     raise AssertionError
-                console.log(f'Found {len(file["structs"])} structs 🙉', justify="center")
+                console.log(f'Found {len(file["structs"])} structs in {sheet_name} 🙉', justify="center")
             return files
 
     def read_sheet(
