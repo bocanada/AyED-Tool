@@ -1,12 +1,14 @@
 from __future__ import annotations
+
 from dataclasses import dataclass
-from os import environ, name, system
+from os import environ, name
 from pathlib import Path
+from shutil import which
 from typing import Any, Iterable, Optional
 from unicodedata import category, normalize
 
 from rich.console import Console
-from rich.prompt import InvalidResponse, Prompt, PromptBase
+from rich.prompt import InvalidResponse, PromptBase
 from rich.table import Table
 from rich.text import TextType
 from rich.traceback import install
@@ -34,7 +36,7 @@ class Editor:
         if WIN:
             return "notepad"
         for editor in ("nvim", "vim", "nano"):
-            if system(f"which {editor} >/dev/null 2>&1") == 0:
+            if which(editor) is not None:
                 return editor
         return "vi"
 
@@ -131,9 +133,6 @@ class NoStructException(Exception):
         return self.message
 
 
-prompt = Prompt
-
-
 def edit(text: str) -> str:
     editor = Editor()
     code = editor.edit(text)
@@ -161,7 +160,8 @@ def build_cfn(
     if ret == "string":
         ret = "std::string"
     return (
-        f'{ret} {name}({", ".join(params or [])})\n'  # returntype functionName(type varname, for all params)
+        # returntype functionName(type varname, for all params)
+        f'{ret} {name}({", ".join(params or [])})\n'
         + "{\n"  # {
         + (";\n".join(body) + ";\n" if body else "")  # function body
         + (f"  return {vret};\n" if ret != "void" else "")
