@@ -37,7 +37,7 @@ class Printer:
         out.mkdir(exist_ok=True)
         path = out / path
         with path.open('w', encoding='utf-8') as fh:
-            print(fns, file=fh)
+            fh.write(fns)
         console.log(f"[b]Wrote {path.absolute()}[/b]", justify='center')
 
     @classmethod
