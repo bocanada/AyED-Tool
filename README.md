@@ -1,4 +1,4 @@
-## AyED Tools
+# AyED Tools
 ## Instalación
 ```zsh
 bocanada in ~/Dev/ayed/ayed on main ● λ $ pip install ayed
