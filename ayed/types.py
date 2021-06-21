@@ -1,5 +1,6 @@
+from dataclasses import dataclass
 from pathlib import Path
-from typing import TypedDict, Union
+from typing import Any, TypedDict, Union
 
 from pandas import DataFrame, Series
 
@@ -17,3 +18,10 @@ class File(TypedDict):
 
 
 Files = list[dict[str, File]]
+
+@dataclass
+class ReadSheetException(Exception):
+    message: str
+    
+    def __str__(self) -> str:
+        return self.message
