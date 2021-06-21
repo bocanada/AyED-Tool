@@ -1,28 +1,21 @@
 from pathlib import Path
 from typing import Optional
-from unicodedata import category, normalize
 
 from attr import dataclass, field
 from pandas import DataFrame, Series, isna, read_excel
 from regex import compile
 
 from ayed.classes import C_DTYPES, Struct, Variable
-from ayed.types import File, Files, PandasDF, PathLike, Sheet
-from ayed.utils import console
+from ayed.types import File, Files, PandasDF, PathLike, ReadSheetException, Sheet
+from ayed.utils import console, sanitize_name
 
 char_array = compile(r"char\[(\d*)\]")
-
-
-def sanitize_name(fname: str) -> str:
-    return "".join(
-        c for c in normalize("NFD", fname) if category(c) != "Mn" and c != " "
-    )
 
 
 @dataclass(slots=True)
 class Excel:
     file_path: PathLike
-    sheet: Optional[str] = field(default=None)
+    sheet: Optional[str] = field(default=None, init=False)
     df: Optional[PandasDF] = field(default=None, init=False, repr=False)
 
     def __attrs_post_init__(self):
@@ -94,9 +87,9 @@ class Excel:
         return file
 
 
-def write_one(file: File, *, sheet_name: str, unpack: Optional[bool] = True) -> None:
+def write_one(file: File, *, sheet_name: str, unpack: Optional[bool] = True) -> bool:
     if sheet_name is None:
-        raise AssertionError
+        return False
     sheet_name = sanitize_name(sheet_name)
     for i, fname in enumerate(file["filenames"]):
         vars: list[Variable] = []
@@ -106,6 +99,7 @@ def write_one(file: File, *, sheet_name: str, unpack: Optional[bool] = True) -> 
                 continue
         s = Struct(name=file["structs"][i], fields=tuple(vars))
         s.pack(fname, unpack=unpack)  # packs the struct into output_files/fname
+    return True
 
 
 def write_many(files: Files, *, unpack: Optional[bool] = True) -> None:
@@ -114,5 +108,8 @@ def write_many(files: Files, *, unpack: Optional[bool] = True) -> None:
             f"Expected {list} of {dict} but got {type(files)}. Try using struct_from_file instead."
         )
     for file in files:
-        for (sheet_name, fh) in file.items():
+        if not all(
             write_one(fh, sheet_name=sheet_name, unpack=unpack)
+            for (sheet_name, fh) in file.items()
+        ):
+            raise ReadSheetException('Failed to read all sheets.')

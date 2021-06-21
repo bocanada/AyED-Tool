@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from os import environ, name, system
 from pathlib import Path
 from typing import Any, Iterable, Optional
+from unicodedata import category, normalize
 
 from rich.console import Console
 from rich.prompt import InvalidResponse, Prompt, PromptBase
@@ -180,3 +181,9 @@ def create_table(title: str, columns: Iterable[Any], rows: Iterable[Any] = None)
         for row in rows:
             table.add_row(row)
     return table
+
+
+def sanitize_name(fname: str) -> str:
+    return "".join(
+        c for c in normalize("NFD", fname) if category(c) != "Mn" and c != " "
+    )
