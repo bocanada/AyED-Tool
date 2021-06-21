@@ -1,5 +1,5 @@
 from pathlib import Path
-from ayed.tool import Tokenizer
+from ayed.parser import Tokenizer
 from pytest import raises
 
 
