@@ -1,13 +1,13 @@
-from dataclasses import dataclass, field as dfield
 from pathlib import Path
 from random import sample
 from string import ascii_lowercase
 from struct import Struct as CStruct
-from typing import Any, Iterable, Optional, TypedDict
+from typing import Any, Iterable, Optional
 
-from rich.table import Table
+from attr import Factory, dataclass
+from attr import field as dfield
 
-from ayed.utils import build_cfn, console
+from ayed.utils import build_cfn, console, create_table
 
 ascii_lowercase = "".join(x for x in ascii_lowercase if x != "x")
 
@@ -44,18 +44,18 @@ C_DTYPES = {
 }
 
 
-@dataclass
+@dataclass(slots=True, str=False)
 class Variable:
     type: str
     name: str
-    ctype: Optional[int] = None
-    data: list[Any] = dfield(
-        default_factory=list
-    )  # the data that the variable holds. Used when loading an excel file
-    struct_id: Optional[int] = None
-    file_id: Optional[int] = None
+    ctype: Optional[int] = dfield(
+        default=0, validator=lambda __, _, v: v is not None and isinstance(v, int)
+    )
+    data: list[Any] = Factory(list)
+    struct_id: Optional[int] = dfield(init=False, default=None, repr=False)
+    file_id: Optional[int] = dfield(init=False, default=None, repr=False)
 
-    def __post_init__(self):
+    def __attrs_post_init___(self):
         if self.type == "string":
             self.type = "std::string"
 
@@ -79,42 +79,21 @@ class Variable:
         return {"int": "i", "long": "long", "double": "d"}.get(self.type, "c")
 
 
-class File(TypedDict):
-    filenames: list[str]
-    structs: list[str]
-    variables: list[Variable]
+Variables = tuple[Variable, ...]
 
 
 @dataclass
 class Struct(Iterable[Variable]):
     name: str
-    fields: tuple[Variable, ...]
+    fields: Variables
     cstruct: CStruct = dfield(init=False)
 
-    def __post_init__(self):
+    def __attrs_post_init__(self):
         c_fmt = "".join(ctype.format_character() for ctype in self.fields)
         self.cstruct = CStruct(c_fmt)
 
     def __iter__(self):
         yield from self.fields
-
-    # TODO: Use a different separator when reading a struct
-    def to_str(self, sep: Optional[str] = "-") -> str:
-        name = self.name[0].lower()
-        variables: list[str] = []
-        for field in self:
-            if field.type == "string":
-                variables.append(field.name)
-                continue
-            s = f"{field.type_to_str()}({name}.{field.name})"
-            variables.append(s)
-        ret = f"+'{sep}'+".join(variables)
-        return build_cfn(
-            "std::string",
-            f"{self.name.lower()}ToString",
-            vret=ret,
-            params=[f"{self.name} {name}"],
-        )
 
     @property
     def size(self):
@@ -140,28 +119,41 @@ class Struct(Iterable[Variable]):
         if not filepath.exists():
             raise AssertionError("Path doesn't exist")
         data_len = len(self.fields[0].data)
-        table = Table(
-            highlight=True,
-            title=f"{filepath.name} - {self.size * data_len} bytes",
-            title_justify="center",
-            show_header=True,
-            show_lines=True,
+        table = create_table(
+            f"{filepath.name} - {self.size * data_len} bytes",
+            columns=iter(field.name for field in self),
         )
-        for field in self:
-            table.add_column(field.name, justify="center")
         with filepath.open("rb") as dat:
             while d := dat.read(self.size):
                 written = self.cstruct.unpack(d)
                 table.add_row(*[str(d) for d in written])
         console.print(table, justify="center")
 
+    # TODO: Use a different separator when reading a struct
+    def to_str(self, sep: Optional[str] = "-") -> str:
+        name = self.name[0].lower()
+        variables: list[str] = []
+        for field in self:
+            if field.type == "string":
+                variables.append(field.name)
+                continue
+            s = f"{field.type_to_str()}({name}.{field.name})"
+            variables.append(s)
+        ret = f"+'{sep}'+".join(variables)
+        return build_cfn(
+            "string",
+            f"{self.name.lower()}ToString",
+            params=[f"{self.name} {name}"],
+            vret=ret,
+        )
+
     def from_str(self) -> str:
-        variables: list[str] = [f"{self.name} x" + "{}"]
+        body: list[str] = [f"{self.name} x" + "{}"]
         for i, field in enumerate(self):
             token = f"std::string t{i} = getTokenAt(s, '-', {i})"
-            variables.append(token)
+            body.append(token)
             if fn := field.str_to_type():
-                variables.append(
+                body.append(
                     fn + f"(x.{field.name}, t{i}.c_str())"
                     if fn == "strcpy"
                     else f"x.{field.name} = {fn}(t{i})"
@@ -169,9 +161,9 @@ class Struct(Iterable[Variable]):
         return build_cfn(
             self.name,
             f"{self.name.lower()}FromString",
-            vret="x",
             params=["std::string s"],
-            body=variables,
+            body=body,
+            vret="x",
         )
 
     def to_debug(self) -> str:
@@ -184,7 +176,7 @@ class Struct(Iterable[Variable]):
             )
         body.append('sout << "};"')
         return build_cfn(
-            "std::string",
+            "string",
             f"{self.name.lower()}ToDebug",
             params=[f"{self.name} {name}"],
             body=body,
@@ -193,7 +185,7 @@ class Struct(Iterable[Variable]):
 
     def init(self) -> str:
         vnames = sample(ascii_lowercase[13:], k=len(self.fields))
-        parameters = [
+        params = [
             f'{field.type if not field.ctype else "std::string"} {vnames[i]}'
             for i, field in enumerate(self)
         ]
@@ -207,7 +199,7 @@ class Struct(Iterable[Variable]):
             line = f"x.{field.name} = {vnames[i]}"
             body.append(line)
         return build_cfn(
-            self.name, f"new{self.name}", vret="x", params=parameters, body=body
+            self.name, f'new{self.name}', params=params, body=body, vret="x"
         )
 
     def __str__(self) -> str:
@@ -218,3 +210,6 @@ class Struct(Iterable[Variable]):
             )
         fns += "};\n"
         return fns
+
+
+Structs = list[Struct]
