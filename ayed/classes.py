@@ -1,8 +1,12 @@
+from __future__ import annotations
 from pathlib import Path
 from random import sample
 from string import ascii_lowercase
 from struct import Struct as CStruct
-from typing import Any, Iterable, Iterator, Optional
+from typing import Any, Iterable, Iterator, Optional, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from ayed.types import Variables
 
 import attr
 
@@ -76,9 +80,6 @@ class Variable:
         if self.ctype:
             return f"{self.ctype}s"
         return {"int": "i", "long": "long", "double": "d"}.get(self.type, "c")
-
-
-Variables = tuple[Variable, ...]
 
 
 @attr.s(init=True)
@@ -209,6 +210,3 @@ class Struct(Iterable[Variable]):
             )
         fns += "};\n"
         return fns
-
-
-Structs = list[Struct]

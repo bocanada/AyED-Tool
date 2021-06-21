@@ -15,10 +15,10 @@ SCRIPT_DIR = os.path.dirname(
 sys.path.append(os.path.normpath(os.path.join(SCRIPT_DIR, PACKAGE_PARENT)))
 
 
-from ayed.classes import Structs
 from ayed.excel import Excel, write_many
 from ayed.parser import Tokenizer
 from ayed.printer import Printer
+from ayed.types import Structs
 from ayed.utils import PromptPath, console, edit, prompt
 
 

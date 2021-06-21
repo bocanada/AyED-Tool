@@ -1,9 +1,9 @@
-from __future__ import annotations
 from pathlib import Path
 from re import compile as rcompile
 from typing import Any, Pattern
 
-from ayed.classes import Struct, Structs, Variable
+from ayed.classes import Struct, Variable
+from ayed.types import Structs
 from ayed.utils import NoStructException
 
 

@@ -1,10 +1,12 @@
 from __future__ import annotations
+
 from pathlib import Path
 from typing import Iterable
 
 from attr import dataclass
 
-from ayed.classes import Struct, Structs
+from ayed.classes import Struct
+from ayed.types import Structs
 from ayed.utils import add_includes, console
 
 

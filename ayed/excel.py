@@ -102,7 +102,7 @@ def write_one(file: File, *, sheet_name: str, unpack: bool = True) -> bool:
             if var.struct_id == i:
                 vars.append(var)
                 continue
-        s = Struct(name=file["structs"][i], fields=tuple(vars))
+        s = Struct(name=file["structs"][i], fields=vars)
         s.pack(fname, unpack=unpack)  # packs the struct into output_files/fname
     return True
 
