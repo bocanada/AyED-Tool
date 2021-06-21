@@ -74,10 +74,11 @@ def main():
         show_choices=True,
     )
     if option == "1":
-        return coll_fn_gen()
-    return open_excel()
+        coll_fn_gen()
+    else:
+        open_excel()
+    console.log("[b white]Done! Bye! 👋", justify='center')
 
 
 if __name__ == "__main__":
     main()
-    console.log("[b white]Done! Bye! 👋", justify='center')
