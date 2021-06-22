@@ -21,7 +21,7 @@ $ ayed [OPTIONS] COMMAND [ARGS]...
 
 Crea las funciones newT, TToString, TFromString, TToDebug para un struct T.
 
-Por default, abre un editor en el que podrán escribir/copy-paste los structs.
+Por default, abre un editor - $VISUAL o NOTEPAD en Win, $EDITOR o vi/vim/nvim/nano en Linux - en el que podrán escribir sus structs
 
 Si ya tienen un archivo y no quieren que se abra el editor, pueden usar
 -p o --path [PATH], siendo [PATH] el nombre del archivo.

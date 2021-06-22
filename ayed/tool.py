@@ -48,7 +48,8 @@ def coll_fn_gen(
     """
     Crea las funciones newT, TToString, TFromString, TToDebug para un struct T.
 
-    Por default, abre un editor en el que podrán escribir/copy-paste sus structs.
+    Por default, abre un editor - $VISUAL o NOTEPAD en Win,
+    $EDITOR o vi/vim/nvim/nano en Linux - en el que podrán escribir sus structs.
 
     Si ya tienen un archivo y no quieren que se abra el editor, pueden usar
     -p o --path [PATH], siendo [PATH] el nombre del archivo
@@ -92,7 +93,7 @@ def open_excel(
     después del nombre del programa,
     ej: ayed files home/bocanada/Documents/AlgoritmosFiles.xlsx.
 
-    Usen -s o --sheet [SHEET] para especificar una solapa, siendo [SHEET] la solapa.
+    Con -s o --sheet [SHEET] pueden especificar una solapa, siendo [SHEET] la solapa.
 
     Si utilizan --no-read, el programa no leerá los archivos para mostrarlos.
     """
