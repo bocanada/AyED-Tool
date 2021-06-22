@@ -1,7 +1,11 @@
+from __future__ import annotations
+
 from os import environ, name
 from pathlib import Path
 from shutil import which
-from typing import Optional
+from subprocess import Popen
+from tempfile import mkstemp
+
 from attr import dataclass
 
 WIN = name == "nt"
@@ -9,9 +13,9 @@ WIN = name == "nt"
 
 @dataclass
 class Editor:
-    extension: Optional[str] = ".cpp"
-    path: Optional[str] = None
-    env: Optional[dict[str, str]] = None
+    extension: str | None = ".cpp"
+    path: str | None = None
+    env: dict[str, str] | None = None
 
     def get_editor(self) -> str:
         if self.path is not None:
@@ -28,10 +32,9 @@ class Editor:
         return "vi"
 
     def edit_file(self, filename: str) -> None:
-        from subprocess import Popen
 
         editor = self.get_editor()
-        env: Optional[dict[str, str]] = None
+        env: dict[str, str] | None = None
 
         if self.env:
             env = env.copy()  # type: ignore
@@ -45,8 +48,7 @@ class Editor:
         except OSError as e:
             raise OSError(f"{editor}: Editing failed: {e}") from e
 
-    def edit(self, text: Optional[str]) -> Optional[str]:
-        import tempfile
+    def edit(self, text: str | None) -> str | None:
 
         if not text:
             data = b""
@@ -60,7 +62,7 @@ class Editor:
             else:
                 data = text.encode("utf-8")
 
-        fd, name = tempfile.mkstemp(prefix="editor-", suffix=self.extension)
+        fd, name = mkstemp(prefix="editor-", suffix=self.extension)
 
         try:
             with open(fd, "wb") as f:
