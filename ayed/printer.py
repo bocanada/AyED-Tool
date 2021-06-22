@@ -44,7 +44,10 @@ class Printer:
         path = out / path
         with path.open('w', encoding='utf-8') as fh:
             fh.write(fns)
-        console.log(f"[b]Output file: {path.absolute()}[/b]", justify='center')
+        console.log(
+            f"[b]Output file: [magenta]{path.absolute().as_uri()}[/magenta][/b]",
+            justify='center',
+        )
 
     @classmethod
     def from_tokens(cls, tokens: Structs) -> Printer:
