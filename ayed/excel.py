@@ -1,12 +1,14 @@
+from __future__ import annotations
+
 from pathlib import Path
-from typing import Optional
 
 import attr
 from pandas import DataFrame, Series, isna, read_excel
 from regex import compile
 
 from ayed.classes import C_DTYPES, Struct, Variable
-from ayed.types import File, Files, PandasDF, PathLike, ReadSheetException, Sheet
+from ayed.exceptions import ReadSheetException
+from ayed.types import File, Files, PandasDF, PathLike, Sheet
 from ayed.utils import console, sanitize_name
 
 char_array = compile(r"char\[(\d*)\]")
@@ -15,14 +17,14 @@ char_array = compile(r"char\[(\d*)\]")
 @attr.s(slots=True)
 class Excel:
     file_path: PathLike = attr.ib()
-    sheet: Optional[str] = attr.ib(default=None, init=False)
-    df: Optional[PandasDF] = attr.ib(default=None, init=False, repr=False)
+    sheet: str | None = attr.ib(default=None, init=False)
+    df: PandasDF | None = attr.ib(default=None, init=False, repr=False)
 
     def __attrs_post_init__(self) -> None:
         if isinstance(self.file_path, str):
             self.file_path = Path(self.file_path)
 
-    def read(self, *, sheet: Optional[str] = None) -> None:
+    def read(self, *, sheet: str | None = None) -> None:
         if sheet:
             self.sheet = sheet
         if not isinstance(self.file_path, Path):
@@ -50,8 +52,8 @@ class Excel:
     def read_sheet(
         self,
         *,
-        df: Optional[Sheet] = None,
-        file: Optional[File] = None,
+        df: Sheet | None = None,
+        file: File | None = None,
     ) -> File:
         if df is None:
             df = self.df  # type: ignore

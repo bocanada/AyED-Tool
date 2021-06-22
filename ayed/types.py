@@ -1,10 +1,11 @@
-from dataclasses import dataclass
+from __future__ import annotations
+
 from pathlib import Path
 from typing import TypedDict, Union
 
 from pandas import DataFrame, Series
 
-from ayed.classes import Variable, Struct
+from ayed.classes import Struct, Variable
 
 PathLike = Union[Path, str]
 PandasDF = Union[DataFrame, dict[str, DataFrame]]
@@ -20,11 +21,3 @@ class File(TypedDict):
 
 Files = list[dict[str, File]]
 Structs = list[Struct]
-
-
-@dataclass
-class ReadSheetException(Exception):
-    message: str
-
-    def __str__(self) -> str:
-        return self.message

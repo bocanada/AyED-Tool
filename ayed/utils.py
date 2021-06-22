@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
 from typing import Any, Iterable, Optional
 from unicodedata import category, normalize
 
@@ -9,18 +8,11 @@ from rich.table import Table
 from rich.traceback import install
 
 from ayed.editor import Editor
+from ayed.exceptions import NoStructException
 
 console = Console()
 
 install(console=console)  # install traceback hook
-
-
-@dataclass
-class NoStructException(Exception):
-    message: str
-
-    def __str__(self) -> str:
-        return self.message
 
 
 def edit(text: str) -> str:
