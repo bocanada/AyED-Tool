@@ -8,9 +8,7 @@ from typing import Any, Iterable, Optional
 from unicodedata import category, normalize
 
 from rich.console import Console
-from rich.prompt import InvalidResponse, PromptBase
 from rich.table import Table
-from rich.text import TextType
 from rich.traceback import install
 
 console = Console()
@@ -90,39 +88,6 @@ class Editor:
             return rv.decode("utf-8-sig").replace("\r\n", "\n")
         finally:
             Path(name).unlink()
-
-
-class PromptPath(PromptBase[Path]):
-    def __init__(
-        self,
-        prompt: TextType,
-        *,
-        console: Optional[Console],
-        password: bool,
-        choices: Optional[list[str]] = None,
-        show_default: bool,
-        show_choices: bool,
-    ) -> None:
-        super().__init__(
-            prompt=prompt,
-            console=console,
-            password=password,
-            choices=choices,
-            show_default=show_default,
-            show_choices=show_choices,
-        )
-
-    response_type = Path
-
-    def process_response(self, value: str) -> Path:
-        if not value:
-            raise InvalidResponse("[b][prompt.invalid]You should enter a path.")
-        path = Path(value).absolute()
-        if not value or not path.exists():
-            raise InvalidResponse(
-                "[b][prompt.invalid]Path does not exist. Try with an absolute path."
-            )
-        return path.absolute()
 
 
 @dataclass
