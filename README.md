@@ -21,10 +21,10 @@ $ ayed [OPTIONS] COMMAND [ARGS]...
 
 Crea las funciones newT, TToString, TFromString, TToDebug para un struct T.
 
-Por default, abre un editor en el que podrán escribir/copy-paste sus structs.
+Por default, abre un editor en el que podrán escribir/copy-paste los structs.
 
 Si ya tienen un archivo y no quieren que se abra el editor, pueden usar
--p o --path [PATH], siendo [PATH] el nombre del archivo
+-p o --path [PATH], siendo [PATH] el nombre del archivo.
 
 **Usage**:
 
