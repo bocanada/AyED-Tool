@@ -17,21 +17,20 @@ char_array = compile(r"char\[(\d*)\]")
 @attr.s(slots=True)
 class Excel:
     file_path: PathLike = attr.ib()
-    sheet: str | None = attr.ib(default=None, init=False)
+    sheet: str | None = attr.ib(default=None)
     df: PandasDF | None = attr.ib(default=None, init=False, repr=False)
 
     def __attrs_post_init__(self) -> None:
         if isinstance(self.file_path, str):
             self.file_path = Path(self.file_path)
-
-    def read(self, *, sheet: str | None = None) -> None:
-        if sheet:
-            self.sheet = sheet
-        if not isinstance(self.file_path, Path):
-            raise ValueError('file_path should be a Path object.')
         self.df = read_excel(self.file_path.absolute().as_uri(), sheet_name=self.sheet)
 
-    def read_sheets(self) -> Files:
+    def read(self) -> File | Files:
+        if self.sheet is None:
+            return self.__read_sheets()
+        return self.__read_sheet()
+
+    def __read_sheets(self) -> Files:
         files = []
         if not (isinstance(self.df, dict) or self.df):
             raise AssertionError('Maybe you meant to use "read_sheet".')
@@ -39,17 +38,19 @@ class Excel:
             for sheet_name, data in self.df.items():
                 data = data.dropna(axis="columns", how="all")
                 file = File(filenames=[], structs=[], variables=[])
-                self.read_sheet(file=file, df=data)
+                self.__read_sheet(file=file, df=data)
                 files.append({sanitize_name(sheet_name): file})  # type: ignore
                 if len(file["filenames"]) != len(file["structs"]):
-                    raise AssertionError
+                    raise AssertionError(
+                        f'{len(file["filenames"])=} != {len(file["structs"])=}'
+                    )
                 console.log(
                     f'Found {len(file["structs"])} structs in {sheet_name} 🙉',
                     justify="center",
                 )
             return files
 
-    def read_sheet(
+    def __read_sheet(
         self,
         *,
         df: Sheet | None = None,
@@ -58,7 +59,7 @@ class Excel:
         if df is None:
             df = self.df  # type: ignore
         if not isinstance(df, (DataFrame, Series)):
-            raise AssertionError("You should probably use read_sheets")
+            raise ValueError("You should probably use read_sheets")
         df = df.dropna(axis="columns", how="all")
         if not file:
             file = File(filenames=[], structs=[], variables=[])

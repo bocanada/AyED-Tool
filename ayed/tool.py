@@ -97,13 +97,13 @@ def open_excel(
 
     Si utilizan --no-read, el programa no leerá los archivos para mostrarlos.
     """
-    excel = Excel(path)
-    excel.read(sheet=sheet)
-    if sheet:
-        f = excel.read_sheet()
+    excel = Excel(path, sheet=sheet)
+    f = excel.read()
+    if isinstance(f, dict) and sheet:
         write_one(f, sheet_name=sheet, unpack=read)
     else:
-        f = excel.read_sheets()
+        if not isinstance(f, list):
+            raise AssertionError('Failed to read .xlsx')
         write_many(f, unpack=read)
     console.log("[b white]Done! Bye! 👋", justify='center')
 
