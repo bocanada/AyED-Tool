@@ -84,7 +84,8 @@ def open_excel(
     ),
     read: bool = Option(True, help="Lee las estructuras guardadas en el .dat"),
 ) -> None:
-    """Por default, abre el excel `AlgoritmosFiles.xlsx` en la carpeta en la que
+    """
+    Por default, abre el excel `AlgoritmosFiles.xlsx` en la carpeta en la que
     estén y lee todas sus solapas.
 
     Si el excel está en otro lugar, pueden especificar la dirección del archivo.xlsx

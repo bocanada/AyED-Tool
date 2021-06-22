@@ -16,7 +16,7 @@ install(console=console)  # install traceback hook
 
 
 def edit(text: str) -> str:
-    "Launches an editor with `text` on top of the file."
+    """Launches an editor with `text` on top of the file."""
     editor = Editor()
     code = editor.edit(text)
     if code is None:
@@ -25,12 +25,15 @@ def edit(text: str) -> str:
 
 
 def add_includes(*, libs: list[str]) -> str:
-    """Builds a str of includes,
+    """
+    Builds a str of includes,
 
-    >> add_includes(libs=[cstring, string, stdio])
-      #include <cstring>\n
-      #include <string>\n
-      #include stdio\n"""
+    >>> add_includes(libs=[cstring, string, stdio])
+    '''#include <cstring>
+    #include <string>
+    #include stdio
+    '''
+    """
     lib = ["#include " + (f"<{lib}>" if "/" not in lib else f'"{lib}"') for lib in libs]
     return "\n".join(lib) + "\n"
 

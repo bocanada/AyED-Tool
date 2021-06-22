@@ -88,8 +88,10 @@ class Variable:
 
 @attr.s(init=True)
 class Struct(Iterable[Variable]):
-    """Represents a C-Struct. Could be used to print out all the
-    functions for Coll or to write out files with Struct.pack."""
+    """
+    Represents a C-Struct. Could be used to print out all the
+    functions for Coll or to write out files with Struct.pack
+    """
 
     name: str = attr.ib()
     fields: Variables = attr.ib()
