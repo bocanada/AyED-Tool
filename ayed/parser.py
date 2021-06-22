@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from pathlib import Path
 from re import compile as rcompile
 from typing import Any, Pattern
