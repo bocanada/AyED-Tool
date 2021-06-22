@@ -1,5 +1,5 @@
-from ayed.tool import main
+from ayed.tool import app
 
 
 if __name__ == '__main__':
-    main()
+    app()
