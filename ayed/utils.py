@@ -16,6 +16,7 @@ install(console=console)  # install traceback hook
 
 
 def edit(text: str) -> str:
+    "Launches an editor with `text` on top of the file."
     editor = Editor()
     code = editor.edit(text)
     if code is None:
@@ -24,6 +25,12 @@ def edit(text: str) -> str:
 
 
 def add_includes(*, libs: list[str]) -> str:
+    """Builds a str of includes,
+
+    >> add_includes(libs=[cstring, string, stdio])
+      #include <cstring>\n
+      #include <string>\n
+      #include stdio\n"""
     lib = ["#include " + (f"<{lib}>" if "/" not in lib else f'"{lib}"') for lib in libs]
     return "\n".join(lib) + "\n"
 
@@ -54,6 +61,7 @@ def build_cfn(
 def create_table(
     title: str, columns: Iterable[Any], rows: Iterable[Any] = None
 ) -> Table:
+    """Creates a table to print out all the written structs"""
     table = Table(
         highlight=True,
         title=title,
@@ -70,6 +78,7 @@ def create_table(
 
 
 def sanitize_name(fname: str) -> str:
+    """Removes all spaces, diacritics and tildes from a str"""
     return "".join(
         c for c in normalize("NFD", fname) if category(c) != "Mn" and c != " "
     )

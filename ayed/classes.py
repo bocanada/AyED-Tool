@@ -1,9 +1,10 @@
 from __future__ import annotations
+
 from pathlib import Path
 from random import sample
 from string import ascii_lowercase
 from struct import Struct as CStruct
-from typing import Any, Iterable, Iterator, Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Iterable, Iterator, Optional
 
 if TYPE_CHECKING:
     from ayed.types import Variables
@@ -49,6 +50,8 @@ C_DTYPES: set[str] = {
 
 @attr.s(slots=True, init=True)
 class Variable:
+    """Represents a struct variable"""
+
     type: str = attr.ib()
     name: str = attr.ib()
     data: list[Any] = attr.ib(init=False, factory=list)
@@ -63,6 +66,7 @@ class Variable:
             self.type = "std::string"
 
     def type_to_str(self) -> str:
+        """Returns what needs to be used to convert self.type to str"""
         return (
             f"{self.type.lower()}ToString"
             if self.type not in C_DTYPES
@@ -84,6 +88,9 @@ class Variable:
 
 @attr.s(init=True)
 class Struct(Iterable[Variable]):
+    """Represents a C-Struct. Could be used to print out all the
+    functions for Coll or to write out files with Struct.pack."""
+
     name: str = attr.ib()
     fields: Variables = attr.ib()
     cstruct: CStruct = attr.ib(init=False)
@@ -97,6 +104,7 @@ class Struct(Iterable[Variable]):
 
     @property
     def size(self) -> int:
+        """Returns the size of the struct."""
         return self.cstruct.size
 
     def pack(self, file_name: str, *, unpack: Optional[bool] = True) -> None:
@@ -115,7 +123,7 @@ class Struct(Iterable[Variable]):
             self.unpack(filepath)
 
     def unpack(self, filepath: Path) -> None:
-        """Reads struct data written with `pack` from `filepath`"""
+        """Reads raw struct bytes written in `filepath`"""
         if not filepath.exists():
             raise AssertionError("Path doesn't exist")
         data_len = len(self.fields[0].data)
@@ -131,6 +139,7 @@ class Struct(Iterable[Variable]):
 
     # TODO: Use a different separator when reading a struct
     def to_str(self, sep: Optional[str] = "-") -> str:
+        """Returns the function TToString"""
         name = self.name[0].lower()
         variables: list[str] = []
         for field in self:
@@ -148,6 +157,7 @@ class Struct(Iterable[Variable]):
         )
 
     def from_str(self) -> str:
+        """Returns the function TFromString"""
         body: list[str] = [f"{self.name} x" + "{}"]
         for i, field in enumerate(self):
             token = f"std::string t{i} = getTokenAt(s, '-', {i})"
@@ -167,6 +177,7 @@ class Struct(Iterable[Variable]):
         )
 
     def to_debug(self) -> str:
+        """Returns the function TToDebug"""
         name = self.name.lower()[0]
         body = ["std::stringstream sout", f'sout << "{self.name}"' + ' << "{"']
         for i, field in enumerate(self):
@@ -184,6 +195,7 @@ class Struct(Iterable[Variable]):
         )
 
     def init(self) -> str:
+        """Creates an initializer function. newT(...)"""
         vnames = sample(ascii_lowercase[13:], k=len(self.fields))
         params = [
             f'{field.type if not field.ctype else "std::string"} {vnames[i]}'

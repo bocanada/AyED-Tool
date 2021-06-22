@@ -14,6 +14,11 @@ Variables = list[Variable]
 
 
 class File(TypedDict):
+    """Represents the structure of an excel sheet. Ex:
+    filenames: [VUELOS.dat, ...]
+    structs: [Vuelo]
+    variables: [struct variables to be written to a file]"""
+
     filenames: list[str]
     structs: list[str]
     variables: Variables

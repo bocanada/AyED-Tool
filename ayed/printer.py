@@ -12,9 +12,12 @@ from ayed.utils import add_includes, console
 
 @dataclass
 class Printer:
+    """Printer prints out an iterable of structs to either a str or a file."""
+
     structs: Iterable[Struct]
 
     def to_str(self) -> str:
+        """Writes all the structs and functions to a str and returns it"""
         s = add_includes(
             libs=[
                 'filesystem',
