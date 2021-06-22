@@ -107,4 +107,4 @@ def open_excel(
 
 
 if __name__ == "__main__":
-    app()
+    app(prog_name='ayed')
