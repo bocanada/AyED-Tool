@@ -44,9 +44,11 @@ estén y lee todas sus solapas.
 
 Si el excel está en otro lugar, pueden especificar la dirección del archivo.xlsx
 después del nombre del programa,
-ej: ayed files home/bocanada/Documents/AlgoritmosFiles.xlsx.
-
-Usen -s o --sheet [SHEET] para especificar una solapa, siendo [SHEET] la solapa.
+ej: 
+```console
+$ ayed files home/bocanada/Documents/AlgoritmosFiles.xlsx.
+```
+Con -s o --sheet [SHEET] pueden especificar una solapa, siendo [SHEET] la solapa.
 
 Si utilizan --no-read, el programa no leerá los archivos para mostrarlos.
 
