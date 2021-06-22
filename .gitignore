@@ -6,5 +6,4 @@ ayed/qtapp.ui
 .pytest_cache
 .venv
 output_files
-AlgoritmosFiles.xlsx
 dist
