@@ -15,36 +15,36 @@ from ayed.utils import build_cfn, console, create_table
 
 ascii_lowercase: str = "".join(x for x in ascii_lowercase if x != "x")
 
-C_DTYPES: set[str] = {
-    "char",
-    "signed char",
-    "unsigned char",
-    "short",
-    "short int",
-    "signed short",
-    "signed short int",
-    "unsigned short",
-    "unsigned short int",
-    "int",
-    "signed",
-    "signed int",
-    "unsigned",
-    "unsigned int",
-    "long",
-    "long int",
-    "signed long",
-    "signed long int",
-    "unsigned long",
-    "unsigned long int",
-    "long long",
-    "long long int",
-    "signed long long",
-    "signed long long int",
-    "unsigned long long",
-    "unsigned long long int",
-    "float",
-    "double",
-    "long double",
+C_DTYPES: dict[str, str] = {
+    "char": '',
+    "signed char": '',
+    "unsigned char": '',
+    "short": '',
+    "short int": '',
+    "signed short": '',
+    "signed short int": '',
+    "unsigned short": '',
+    "unsigned short int": '',
+    "int": 'stoi',
+    "signed": 'stoi',
+    "signed int": 'stoi',
+    "unsigned": 'stoul',
+    "unsigned int": 'stoul',
+    "long": 'stol',
+    "long int": 'stol',
+    "signed long": 'stol',
+    "signed long int": 'stol',
+    "unsigned long": 'stoul',
+    "unsigned long int": 'stoul',
+    "long long": 'stoll',
+    "long long int": 'stoll',
+    "signed long long": 'stoll',
+    "signed long long int": 'stoll',
+    "unsigned long long": 'stoull',
+    "unsigned long long int": 'stoull',
+    "float": 'stof',
+    "double": 'stod',
+    "long double": 'stold',
 }
 
 
@@ -78,12 +78,36 @@ class Variable:
     def str_to_type(self) -> str:
         if self.ctype:
             return "strcpy"
-        return {"int": "stoi"}.get(self.type, f"{self.type.lower()}FromString")
+        return C_DTYPES.get(self.type, f"{self.type.lower()}FromString")
+        # return {"int": "stoi", "float": "stod"}.get(
+        # self.type, f"{self.type.lower()}FromString"
+        # )
 
     def format_character(self) -> str:
         if self.ctype:
             return f"{self.ctype}s"
-        return {"int": "i", "long": "long", "double": "d"}.get(self.type, "c")
+        # https://docs.python.org/3/library/struct.html?highlight=struct#format-characters
+        conv_table = {
+            'c': 'char',
+            'b': 'signed char',
+            'B': 'unsigned char',
+            'h': 'short',
+            'H': 'unsigned short',
+            'i': 'int',
+            'I': 'unsigned int',
+            'l': 'long',
+            'L': 'unsigned long',
+            'q': 'long long',
+            'Q': 'unsigned long long',
+            'n': 'ssize_t',
+            'N': 'size_t',
+            'f': 'float',
+            'd': 'double',
+            's': 'char[]',
+            'p': 'char[]',
+            'P': 'void *',
+        }
+        return conv_table.get(self.type, "c")
 
 
 @attr.s(init=True)
