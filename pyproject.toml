@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "ayed"
-version = "1.0.1"
+version = "1.0.2"
 description = "AyED Tools"
 repository = "https://github.com/Bocanada/AyED-Tool"
 authors = ["Bocanada <24578415+Bocanada@users.noreply.github.com>"]
@@ -19,7 +19,7 @@ pytest = "^5.2"
 black = "^21.6b0"
 mypy = {git = "https://github.com/python/mypy"}
 flake8-bugbear = "^21.4.3"
-typer-cli = "^0.0.11"
+coverage = "^5.5"
 
 [tool.poetry.scripts]
 ayed = 'ayed.tool:app'
