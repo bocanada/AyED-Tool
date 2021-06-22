@@ -22,8 +22,9 @@ from ayed.printer import Printer
 from ayed.types import Structs
 from ayed.utils import console, edit
 
-app = Typer(name='AyED tools')
-DEFAULT_EXCEL: Final = Path("AlgoritmosFiles.xlsx")
+app = Typer(name='ayed')
+
+DEFAULT_EXCEL: Final = "AlgoritmosFiles.xlsx"
 
 
 def open_editor() -> Structs:
@@ -40,6 +41,7 @@ def coll_fn_gen(
         "-p",
         exists=True,
         dir_okay=False,
+        resolve_path=True,
         help="La dirección del archivo .cpp[,.hpp,.c,.h] que contiene a los structs",
     )
 ) -> None:
@@ -74,6 +76,7 @@ def open_excel(
         DEFAULT_EXCEL,
         help="La dirección del .xlsx",
         dir_okay=False,
+        resolve_path=True,
         exists=True,
     ),
     sheet: Optional[str] = Option(
