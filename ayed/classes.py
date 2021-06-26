@@ -16,35 +16,36 @@ from ayed.utils import build_cfn, console, create_table
 ascii_lowercase: str = "".join(x for x in ascii_lowercase if x != "x")
 
 C_DTYPES: dict[str, str] = {
-    "char": '',
-    "signed char": '',
-    "unsigned char": '',
-    "short": '',
-    "short int": '',
-    "signed short": '',
-    "signed short int": '',
-    "unsigned short": '',
-    "unsigned short int": '',
-    "int": 'stoi',
-    "signed": 'stoi',
-    "signed int": 'stoi',
-    "unsigned": 'stoul',
-    "unsigned int": 'stoul',
-    "long": 'stol',
-    "long int": 'stol',
-    "signed long": 'stol',
-    "signed long int": 'stol',
-    "unsigned long": 'stoul',
-    "unsigned long int": 'stoul',
-    "long long": 'stoll',
-    "long long int": 'stoll',
-    "signed long long": 'stoll',
-    "signed long long int": 'stoll',
-    "unsigned long long": 'stoull',
-    "unsigned long long int": 'stoull',
-    "float": 'stof',
-    "double": 'stod',
-    "long double": 'stold',
+    "char": "",
+    "string": "",
+    "signed char": "",
+    "unsigned char": "",
+    "short": "",
+    "short int": "",
+    "signed short": "",
+    "signed short int": "",
+    "unsigned short": "",
+    "unsigned short int": "",
+    "int": "stoi",
+    "signed": "stoi",
+    "signed int": "stoi",
+    "unsigned": "stoul",
+    "unsigned int": "stoul",
+    "long": "stol",
+    "long int": "stol",
+    "signed long": "stol",
+    "signed long int": "stol",
+    "unsigned long": "stoul",
+    "unsigned long int": "stoul",
+    "long long": "stoll",
+    "long long int": "stoll",
+    "signed long long": "stoll",
+    "signed long long int": "stoll",
+    "unsigned long long": "stoull",
+    "unsigned long long int": "stoull",
+    "float": "stof",
+    "double": "stod",
+    "long double": "stold",
 }
 
 
@@ -55,9 +56,7 @@ class Variable:
     type: str = attr.ib()
     name: str = attr.ib()
     data: list[Any] = attr.ib(init=False, factory=list)
-    ctype: Optional[int] = attr.ib(
-        default=0, validator=lambda __, _, v: v is not None and isinstance(v, int)
-    )
+    ctype: Optional[int] = attr.ib(default=0)
     struct_id: Optional[int] = attr.ib(init=False, default=None, repr=False)
     file_id: Optional[int] = attr.ib(init=False, default=None, repr=False)
 
@@ -79,31 +78,28 @@ class Variable:
         if self.ctype:
             return "strcpy"
         return C_DTYPES.get(self.type, f"{self.type.lower()}FromString")
-        # return {"int": "stoi", "float": "stod"}.get(
-        # self.type, f"{self.type.lower()}FromString"
-        # )
 
     def format_character(self) -> str:
         if self.ctype:
             return f"{self.ctype}s"
         # https://docs.python.org/3/library/struct.html?highlight=struct#format-characters
         conv_table = {
-            'char': 'c',
-            'signed char': 'b',
-            'unsigned char': 'B',
-            'short': 'h',
-            'unsigned short': 'H',
-            'int': 'i',
-            'unsigned int': 'I',
-            'long': 'l',
-            'unsigned long': 'L',
-            'long long': 'q',
-            'unsigned long long': 'Q',
-            'ssize_t': 'n',
-            'size_t': 'N',
-            'float': 'f',
-            'double': 'd',
-            'void *': 'P',
+            "char": "c",
+            "signed char": "b",
+            "unsigned char": "B",
+            "short": "h",
+            "unsigned short": "H",
+            "int": "i",
+            "unsigned int": "I",
+            "long": "l",
+            "unsigned long": "L",
+            "long long": "q",
+            "unsigned long long": "Q",
+            "ssize_t": "n",
+            "size_t": "N",
+            "float": "f",
+            "double": "d",
+            "void *": "P",
         }
         return conv_table.get(self.type, "c")
 
@@ -235,7 +231,7 @@ class Struct(Iterable[Variable]):
             line = f"x.{field.name} = {vnames[i]}"
             body.append(line)
         return build_cfn(
-            self.name, f'new{self.name}', params=params, body=body, vret="x"
+            self.name, f"new{self.name}", params=params, body=body, vret="x"
         )
 
     def __str__(self) -> str:
