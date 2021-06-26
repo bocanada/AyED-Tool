@@ -121,4 +121,4 @@ def write_many(files: Files, *, unpack: bool = True) -> None:
             write_one(fh, sheet_name=sheet_name, unpack=unpack)
             for (sheet_name, fh) in file.items()
         ):
-            raise ReadSheetException('Failed to read all sheets.')
+            raise ReadSheetException("Failed to sheets.")
