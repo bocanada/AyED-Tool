@@ -20,12 +20,12 @@ class Printer:
         """Writes all the structs and functions to a str and returns it"""
         s = add_includes(
             libs=[
-                'filesystem',
-                'cstdio',
-                'iostream',
-                'cstring',
-                'string',
-                'biblioteca/funciones/tokens.hpp',
+                "filesystem",
+                "cstdio",
+                "iostream",
+                "cstring",
+                "string",
+                "biblioteca/funciones/tokens.hpp",
             ],
         )
         for token in self.structs:
@@ -39,14 +39,14 @@ class Printer:
     def to_file(self, path: Path) -> None:
         """Writes all the structs and functions to output_files/path"""
         fns = self.to_str()
-        out = Path('output_files')
+        out = Path("output_files")
         out.mkdir(exist_ok=True)
         path = out / path
-        with path.open('w', encoding='utf-8') as fh:
+        with path.open("w", encoding="utf-8") as fh:
             fh.write(fns)
         console.log(
             f"[b]Output file: [magenta]{path.absolute().as_uri()}[/magenta][/b]",
-            justify='center',
+            justify="center",
         )
 
     @classmethod

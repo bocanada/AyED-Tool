@@ -9,7 +9,7 @@ from typing import Final, Optional
 
 from typer import Argument, Option, Typer
 
-PACKAGE_PARENT = '..'
+PACKAGE_PARENT = ".."
 SCRIPT_DIR = os.path.dirname(
     os.path.realpath(os.path.join(os.getcwd(), os.path.expanduser(__file__)))
 )
@@ -22,18 +22,18 @@ from ayed.printer import Printer
 from ayed.types import Structs
 from ayed.utils import console, edit
 
-app = Typer(name='ayed')
+app = Typer(name="ayed")
 
 DEFAULT_EXCEL: Final = "AlgoritmosFiles.xlsx"
 
 
 def open_editor() -> Structs:
-    SEPARATOR = '// write your code below'
+    SEPARATOR = "// write your code below"
     code = edit(SEPARATOR)
     return Tokenizer.from_str(code)
 
 
-@app.command(name='coll')
+@app.command(name="coll")
 def coll_fn_gen(
     path: Path = Option(
         None,
@@ -59,18 +59,18 @@ def coll_fn_gen(
     else:
         structs = Tokenizer.from_path(path)
     dt = datetime.now().strftime("%d-%m-%y-%H%M")
-    Printer.from_tokens(structs).to_file(Path(f'{dt}.hpp'))
-    written_structs = ', '.join(struct.name for struct in structs)
+    Printer.from_tokens(structs).to_file(Path(f"{dt}.hpp"))
+    written_structs = ", ".join(struct.name for struct in structs)
     console.print(
         "[b yellow]Wrote TtoDebug, TtoString,"
         f" TfromString and newT for {written_structs}",
-        justify='center',
+        justify="center",
     )
-    console.log("[b white]Done! Bye! 👋", justify='center')
+    console.log("[b white]Done! Bye! 👋", justify="center")
 
 
 @app.command(
-    name='files',
+    name="files",
 )
 def open_excel(
     path: Path = Argument(
@@ -81,7 +81,7 @@ def open_excel(
         exists=True,
     ),
     sheet: Optional[str] = Option(
-        None, '-s', '--sheet', help="El nombre de la solapa/sheet"
+        None, "-s", "--sheet", help="El nombre de la solapa/sheet"
     ),
     read: bool = Option(True, help="Lee las estructuras guardadas en el .dat"),
 ) -> None:
@@ -103,10 +103,10 @@ def open_excel(
         write_one(f, sheet_name=sheet, unpack=read)
     else:
         if not isinstance(f, list):
-            raise AssertionError('Failed to read .xlsx')
+            raise AssertionError("Failed to read .xlsx")
         write_many(f, unpack=read)
-    console.log("[b white]Done! Bye! 👋", justify='center')
+    console.log("[b white]Done! Bye! 👋", justify="center")
 
 
 if __name__ == "__main__":
-    app(prog_name='ayed')
+    app(prog_name="ayed")
