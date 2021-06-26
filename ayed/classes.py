@@ -15,6 +15,7 @@ from ayed.utils import build_cfn, console, create_table
 
 ascii_lowercase: str = "".join(x for x in ascii_lowercase if x != "x")
 
+# C_DTYPES :: Num a => string -> a
 C_DTYPES: dict[str, str] = {
     "char": "",
     "string": "",
@@ -202,7 +203,12 @@ class Struct(Iterable[Variable]):
         body = ["std::stringstream sout", f'sout << "{self.name}"' + ' << "{"']
         for i, field in enumerate(self):
             body.append(
-                f'sout << "{field.name} : " << {name}.{field.name}'
+                f'sout << "{field.name} : " << '
+                + (
+                    field.type_to_str() + f"({name}.{field.name})"
+                    if field.type not in C_DTYPES
+                    else f"{name}.{field.name}"
+                )
                 + (' << ", "' if i != len(self.fields) - 1 else "")
             )
         body.append('sout << "};"')
