@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "ayed"
-version = "1.0.2"
+version = "1.1.0"
 description = "AyED Tools"
 repository = "https://github.com/Bocanada/AyED-Tool"
 authors = ["Bocanada <24578415+Bocanada@users.noreply.github.com>"]
