@@ -28,13 +28,11 @@ class Printer:
                 "biblioteca/funciones/tokens.hpp",
             ],
         )
-        for token in self.structs:
-            s += str(token)
-            s += token.init()
-            s += token.to_str()
-            s += token.from_str()
-            s += token.to_debug()
-        return s
+        fbody = [
+            f"{str(token)}{token.init()}{token.to_str()}{token.from_str()}{token.to_debug()}"
+            for token in self.structs
+        ]
+        return s + "\n".join(fbody)
 
     def to_file(self, path: Path) -> None:
         """Writes all the structs and functions to output_files/path"""
