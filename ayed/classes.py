@@ -241,14 +241,13 @@ class Struct(Iterable[Variable]):
         )
 
     def __str__(self) -> str:
-        fns = (
-            f"struct {self.name} "
-            + "{\n"
-            + "\n".join(
-                f"  {field.type} {field.name} {f'[{field.ctype}];' if field.ctype else ';'}"
+        fns = [
+            f"struct {self.name} ",
+            "{",
+            "\n".join(
+                f"  {'std::string' if field.type == 'string' else field.type} {field.name}{f'[{field.ctype}];' if field.ctype else ';'}"
                 for field in self
-            )
-            + "};\n"
-        )
-        fns += "};\n"
-        return fns
+            ),
+            "};\n",
+        ]
+        return "\n".join(fns)
