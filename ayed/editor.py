@@ -3,10 +3,11 @@ from __future__ import annotations
 from os import environ, name
 from shutil import which
 from subprocess import Popen
-from ayed.utils import tmpfile
-from ayed.exceptions import NoStructException
 
 from attr import dataclass
+
+from ayed.exceptions import NoStructException
+from ayed.utils import tmpfile
 
 WIN = name == "nt"
 

@@ -6,7 +6,7 @@ from typing import Any, Pattern
 
 from ayed.classes import Struct, Variable
 from ayed.types import Structs
-from ayed.utils import NoStructException
+from ayed.exceptions import NoStructException
 
 
 class Tokenizer:

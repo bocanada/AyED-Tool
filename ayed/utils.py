@@ -1,11 +1,11 @@
 from __future__ import annotations
 
+from contextlib import contextmanager
+from pathlib import Path
+from tempfile import mkstemp
 from typing import Any, Iterable, Optional
 from unicodedata import category, normalize
-from contextlib import contextmanager
-from tempfile import mkstemp
 
-from pathlib import Path
 from rich.console import Console
 from rich.table import Table
 from rich.traceback import install

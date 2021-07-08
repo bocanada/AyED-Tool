@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import TypedDict, Union
+from typing import Iterator, Union
 
+from attr import dataclass
 from pandas import DataFrame, Series
 
 from ayed.classes import Struct, Variable
@@ -13,7 +14,8 @@ Sheet = Union[DataFrame, Series]
 Variables = list[Variable]
 
 
-class File(TypedDict):
+@dataclass(slots=True)
+class File:
     """
     Represents the structure of an excel sheet. Ex:
     filenames: [VUELOS.dat, ...]
@@ -24,6 +26,15 @@ class File(TypedDict):
     filenames: list[str]
     structs: list[str]
     variables: Variables
+
+    def __iter__(self) -> Iterator[tuple[str, Struct]]:
+        for i, fname in enumerate(self.filenames):
+            vars: list[Variable] = []
+            for var in self.variables:
+                if var.struct_id == i:
+                    vars.append(var)
+                    continue
+            yield fname, Struct(name=self.structs[i], fields=vars)
 
 
 Files = list[dict[str, File]]
