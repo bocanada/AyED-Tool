@@ -1,5 +1,7 @@
 from pathlib import Path
 from ayed.parser import Tokenizer
+from ayed.utils import add_includes, build_cfn
+import deal
 from pytest import raises
 
 
@@ -7,25 +9,29 @@ def test_build_cfn():
     from ayed.utils import build_cfn
 
     f = """int fib(int n)\n{
+
   return fib(n - 1) + fib(n - 2);
 };
 """
     assert f == build_cfn(
-        'int', 'fib', params=['int n'], vret='fib(n - 1) + fib(n - 2)'
+        "int", "fib", params=["int n"], vret="fib(n - 1) + fib(n - 2)", body=[]
     )
 
 
 def test_includes():
-    from ayed.utils import add_includes
 
-    r = "#include <stdio>\n#include \"libreria/something/something\"\n"
-    assert r == add_includes(libs=['stdio', 'libreria/something/something'])
+    r = '#include <stdio>\n#include "libreria/something/something"\n'
+    assert r == add_includes(libs=["stdio", "libreria/something/something"])
+
+
+test_include = deal.cases(add_includes, count=50)
+test_cfn = deal.cases(build_cfn, count=50)
 
 
 def test_editoerror():
     from ayed.utils import edit
 
-    with raises(SystemExit) as e:
+    with raises(SystemExit):
         edit("#code here")
 
 
@@ -42,7 +48,7 @@ def test_tfrom_str() -> None:
   return x;
 };
 """
-    t = Tokenizer.from_path(Path('tests/structs/structs.cpp'))
+    t = Tokenizer.from_path(Path("tests/structs/structs.cpp"))
     r = t[0].from_str()
     assert r == result
 
@@ -59,7 +65,7 @@ def test_todebug() -> None:
   return sout.str();
 };
 """
-    t = Tokenizer.from_path(Path('tests/structs/structs.cpp'))
+    t = Tokenizer.from_path(Path("tests/structs/structs.cpp"))
     r = t[0].to_debug()
     assert r == result
 
@@ -89,15 +95,16 @@ def test_from_str() -> None:
 def test_to_str() -> None:
     result = """std::string equipoToString(Equipo e)
 {
+
   return std::to_string(e.idEq)+'-'+(e.nombre)+'-'+std::to_string(e.puntos);
 };
 """
-    t = Tokenizer.from_path(Path('tests/structs/structs.cpp'))
+    t = Tokenizer.from_path(Path("tests/structs/structs.cpp"))
     assert t[0].to_str() == result
 
 
 def test_fromstr_with_structs() -> None:
-    result = '''NEquipo nequipoFromString(std::string s)
+    result = """NEquipo nequipoFromString(std::string s)
 {
   NEquipo x{};
   std::string t0 = getTokenAt(s, '-', 0);
@@ -106,16 +113,17 @@ def test_fromstr_with_structs() -> None:
   x.npuntos = stoi(t1);
   return x;
 };
-'''
-    t = Tokenizer.from_path(Path('tests/structs/structs3.cpp'))
+"""
+    t = Tokenizer.from_path(Path("tests/structs/structs3.cpp"))
     assert str(t[0].from_str()) == result
 
 
 def test_tostr_with_structs() -> None:
-    result = '''std::string nequipoToString(NEquipo n)
+    result = """std::string nequipoToString(NEquipo n)
 {
+
   return equipoToString(n.e)+'-'+std::to_string(n.npuntos);
 };
-'''
-    t = Tokenizer.from_path(Path('tests/structs/structs3.cpp'))
+"""
+    t = Tokenizer.from_path(Path("tests/structs/structs3.cpp"))
     assert str(t[0].to_str()) == result
