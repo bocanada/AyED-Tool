@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from functools import partial
 from pathlib import Path
 from random import sample
 from string import ascii_lowercase
@@ -153,7 +154,7 @@ class Struct(Iterable[Variable]):
             columns=iter(field.name for field in self),
         )
         with filepath.open("rb") as dat:
-            while d := dat.read(self.size):
+            for d in iter(partial(dat.read, self.size), b""):
                 written = self.cstruct.unpack(d)
                 table.add_row(*[str(d) for d in written])
         console.log(table, justify="center")
@@ -162,13 +163,12 @@ class Struct(Iterable[Variable]):
     def to_str(self, sep: Optional[str] = "-") -> str:
         """Returns the function TToString"""
         name = self.name[0].lower()
-        variables: list[str] = []
-        for field in self:
-            if field.type == "string":
-                variables.append(field.name)
-                continue
-            s = f"{field.type_to_str()}({name}.{field.name})"
-            variables.append(s)
+        variables: list[str] = [
+            field.name
+            if field.type == "string"
+            else f"{field.type_to_str()}({name}.{field.name})"
+            for field in self
+        ]
         ret = f"+'{sep}'+".join(variables)
         return build_cfn(
             "string",
@@ -200,18 +200,18 @@ class Struct(Iterable[Variable]):
     def to_debug(self) -> str:
         """Returns the function TToDebug"""
         name = self.name.lower()[0]
-        body = ["std::stringstream sout", f'sout << "{self.name}"' + ' << "{"']
-        for i, field in enumerate(self):
-            body.append(
-                f'sout << "{field.name} : " << '
-                + (
-                    field.type_to_str() + f"({name}.{field.name})"
-                    if field.type not in C_DTYPES
-                    else f"{name}.{field.name}"
-                )
-                + (' << ", "' if i != len(self.fields) - 1 else "")
-            )
-        body.append('sout << "};"')
+        stream_comma = ' << ", "'
+        body = [
+            "std::stringstream sout",
+            f'sout << "{self.name}"' + ' << "{"',
+            *[
+                f'sout << "{field.name} : " <<'
+                f' {field.type_to_str() + f"({name}.{field.name})" if field.type not in C_DTYPES else f"{name}.{field.name}"}'
+                f"{stream_comma if i != len(self.fields) -1 else ''}"
+                for i, field in enumerate(self)
+            ],
+            'sout << "};"',
+        ]
         return build_cfn(
             "string",
             f"{self.name.lower()}ToDebug",
@@ -221,30 +221,34 @@ class Struct(Iterable[Variable]):
         )
 
     def init(self) -> str:
-        """Creates an initializer function. newT(...)"""
+        """Creates an initializer function. T newT(...)"""
         vnames = sample(ascii_lowercase[13:], k=len(self.fields))
         params = [
             f'{field.type if not field.ctype else "std::string"} {vnames[i]}'
             for i, field in enumerate(self)
         ]
-        body: list[str] = [f"{self.name} x" + "{}"]
-        for i, field in enumerate(self):
-            if field.ctype:
-                body.append(
-                    f"{field.str_to_type()}(x.{field.name}, {vnames[i]}.c_str())"
-                )
-                continue
-            line = f"x.{field.name} = {vnames[i]}"
-            body.append(line)
+        body: list[str] = [
+            f"{self.name} x" + "{}",
+            *[
+                f"{field.str_to_type()}(x.{field.name}, {vnames[i]}.c_str())"
+                if field.ctype
+                else f"x.{field.name} = {vnames[i]}"
+                for i, field in enumerate(self)
+            ],
+        ]
         return build_cfn(
             self.name, f"new{self.name}", params=params, body=body, vret="x"
         )
 
     def __str__(self) -> str:
-        fns = f"struct {self.name} " + "{\n"
-        for field in self:
-            fns += f"  {field.type} {field.name}" + (
-                f"[{field.ctype}];\n" if field.ctype else ";\n"
+        fns = (
+            f"struct {self.name} "
+            + "{\n"
+            + "\n".join(
+                f"  {field.type} {field.name} {f'[{field.ctype}];' if field.ctype else ';'}"
+                for field in self
             )
+            + "};\n"
+        )
         fns += "};\n"
         return fns
