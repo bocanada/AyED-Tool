@@ -2,26 +2,17 @@ from __future__ import annotations
 
 from typing import Any, Iterable, Optional
 from unicodedata import category, normalize
+from contextlib import contextmanager
+from tempfile import mkstemp
 
+from pathlib import Path
 from rich.console import Console
 from rich.table import Table
 from rich.traceback import install
 
-from ayed.editor import Editor
-from ayed.exceptions import NoStructException
-
 console = Console()
 
 install(console=console)  # install traceback hook
-
-
-def edit(text: str) -> str:
-    """Launches an editor with `text` on top of the file."""
-    editor = Editor()
-    code = editor.edit(text)
-    if code is None:
-        raise NoStructException("Couldn't parse the struct.")
-    return code.split(text, 1)[1].strip()
 
 
 def add_includes(*, libs: list[str]) -> str:
@@ -87,3 +78,14 @@ def sanitize_name(fname: str) -> str:
     return "".join(
         c for c in normalize("NFD", fname) if category(c) != "Mn" and c != " "
     )
+
+
+@contextmanager
+def tmpfile(prefix: str, suffix: str | None):
+
+    fd, name = mkstemp(prefix=prefix, suffix=suffix)
+    name = Path(name)
+    try:
+        yield fd, name
+    finally:
+        name.unlink()
