@@ -6,8 +6,7 @@ import attr
 from pandas import DataFrame, Series, isna, read_excel
 from regex import compile
 
-from ayed.classes import C_DTYPES, Struct, Variable
-from ayed.exceptions import ReadSheetException
+from ayed.classes import C_DTYPES, Variable
 from ayed.types import File, Files, PandasDF, PathLike, Sheet
 from ayed.utils import console, sanitize_name
 
@@ -40,12 +39,12 @@ class Excel:
                 file = File(filenames=[], structs=[], variables=[])
                 self.__read_sheet(file=file, df=data)
                 files.append({sanitize_name(sheet_name): file})  # type: ignore
-                if len(file["filenames"]) != len(file["structs"]):
+                if len(file.filenames) != len(file.structs):
                     raise AssertionError(
-                        f'{len(file["filenames"])=} != {len(file["structs"])=}'
+                        f"{len(file.filenames)=} != {len(file.structs)=}"
                     )
                 console.log(
-                    f'Found {len(file["structs"])} structs in {sheet_name} 🙉',
+                    f"Found {len(file.structs)} structs in {sheet_name} 🙉",
                     justify="center",
                 )
             return files
@@ -74,10 +73,10 @@ class Excel:
                     item = item.strip()  # sometimes items have spaces and such
                     if item.startswith("struct"):
                         _, struct = item.split()
-                        file["structs"].append(struct)
+                        file.structs.append(struct)
                         continue
                     if item.endswith(".dat"):
-                        file["filenames"].append(item)
+                        file.filenames.append(item)
                         continue
                     if var.type and not var.name:
                         var.name = item
@@ -86,39 +85,10 @@ class Excel:
                         var.type = item.split("[")[0]
                         var.ctype = int(c[1]) if c else None
                         continue
-                var.struct_id = len(file["structs"]) - 1
-                var.file_id = len(file["filenames"]) - 1
+                var.struct_id = len(file.structs) - 1
+                var.file_id = len(file.filenames) - 1
                 var.data.append(
                     item if not var.ctype else item.ljust(var.ctype).encode("utf-8")
                 )
-            file["variables"].append(var)
+            file.variables.append(var)
         return file
-
-
-def write_one(file: File, *, sheet_name: str, unpack: bool = True) -> bool:
-    if sheet_name is None:
-        return False
-    sheet_name = sanitize_name(sheet_name)
-    for i, fname in enumerate(file["filenames"]):
-        vars: list[Variable] = []
-        for var in file["variables"]:
-            if var.struct_id == i:
-                vars.append(var)
-                continue
-        s = Struct(name=file["structs"][i], fields=vars)
-        s.pack(fname, unpack=unpack)  # packs the struct into output_files/fname
-    return True
-
-
-def write_many(files: Files, *, unpack: bool = True) -> None:
-    if not isinstance(files, list):
-        raise ValueError(
-            f"Expected {list} of {dict} but got {type(files)}."
-            " Try using struct_from_file instead."
-        )
-    for file in files:
-        if not all(
-            write_one(fh, sheet_name=sheet_name, unpack=unpack)
-            for (sheet_name, fh) in file.items()
-        ):
-            raise ReadSheetException("Failed to sheets.")

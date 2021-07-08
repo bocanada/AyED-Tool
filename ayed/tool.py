@@ -16,11 +16,12 @@ SCRIPT_DIR = os.path.dirname(
 sys.path.append(os.path.normpath(os.path.join(SCRIPT_DIR, PACKAGE_PARENT)))
 
 
-from ayed.excel import Excel, write_many, write_one
+from ayed.editor import edit
+from ayed.excel import Excel
 from ayed.parser import Tokenizer
-from ayed.printer import Printer
+from ayed.printer import ExcelPrinter, StructPrinter
 from ayed.types import Structs
-from ayed.utils import console, edit
+from ayed.utils import console
 
 app = Typer(name="ayed")
 
@@ -59,7 +60,7 @@ def coll_fn_gen(
     else:
         structs = Tokenizer.from_path(path)
     dt = datetime.now().strftime("%d-%m-%y-%H%M")
-    Printer.from_tokens(structs).to_file(Path(f"{dt}.hpp"))
+    StructPrinter.from_tokens(structs).to_file(Path(f"{dt}.hpp"))
     written_structs = ", ".join(struct.name for struct in structs)
     console.print(
         "[b yellow]Wrote TtoDebug, TtoString,"
@@ -98,13 +99,10 @@ def open_excel(
     Si utilizan --no-read, el programa no leerá los archivos para mostrarlos.
     """
     excel = Excel(path, sheet=sheet)
-    f = excel.read()
-    if isinstance(f, dict) and sheet:
-        write_one(f, sheet_name=sheet, unpack=read)
-    else:
-        if not isinstance(f, list):
-            raise AssertionError("Failed to read .xlsx")
-        write_many(f, unpack=read)
+    with ExcelPrinter(excel) as printer:
+        printer.to_file()
+        if read:
+            printer.to_table()
     console.log("[b white]Done! Bye! 👋", justify="center")
 
 
