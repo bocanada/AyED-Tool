@@ -1,4 +1,5 @@
-from ayed.excel import Excel, write_one
+from ayed.excel import Excel
+from ayed.printer import ExcelPrinter
 from typing import Generator
 from pathlib import Path
 from struct import Struct
@@ -16,10 +17,8 @@ def test_struct_write() -> None:
     excel = Excel(
         file_path="tests/structs/AlgoritmosFiles.xlsx", sheet="Compañía de aviación"
     )
-    f = excel.read()
-    assert isinstance(f, dict)
-    res = write_one(file=f, sheet_name=excel.sheet, unpack=False)
-    assert res
+    with ExcelPrinter(excel) as p:
+        p.to_file()
     assert len(list(Path("output_files").glob("*.dat"))) == 3
 
 
@@ -77,11 +76,9 @@ def test_EMISIONDETICKETS() -> None:
     excel = Excel(
         file_path="tests/structs/AlgoritmosFiles.xlsx", sheet="Emisión de tickets"
     )
-    f = excel.read()
-    assert isinstance(f, dict)
+    with ExcelPrinter(excel) as p:
+        p.to_file()
     assert excel.sheet is not None
-    res = write_one(file=f, sheet_name=excel.sheet, unpack=False)
-    assert res is True
     assert len(list(Path("output_files").glob("*.dat"))) == 5
 
 

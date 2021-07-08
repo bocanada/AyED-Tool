@@ -29,7 +29,7 @@ test_cfn = deal.cases(build_cfn, count=50)
 
 
 def test_editoerror():
-    from ayed.utils import edit
+    from ayed.editor import edit
 
     with raises(SystemExit):
         edit("#code here")
