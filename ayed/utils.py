@@ -51,13 +51,15 @@ def build_cfn(
         body = ["  " + line for line in body]
     if ret == "string":
         ret = "std::string"
-    return (
-        # returntype functionName(type varname, for all params)
-        f'{ret} {name}({", ".join(params or [])})\n'
-        + "{\n"  # {
-        + (";\n".join(body) + ";\n" if body else "")  # function body
-        + (f"  return {vret};\n" if ret != "void" else "")
-        + "};\n"  # return varname;  # };
+    return "\n".join(
+        [
+            # returntype functionName(type varname, for all params)
+            f'{ret} {name}({", ".join(params or [])})',
+            "{",  # {
+            (";\n".join(body) + ";" if body else ""),  # function body
+            (f"  return {vret};" if ret != "void" else ""),
+            "};\n",  # return varname;  # };
+        ]
     )
 
 
