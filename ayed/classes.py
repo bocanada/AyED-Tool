@@ -129,20 +129,13 @@ class Struct(Iterable[Variable]):
         """Returns the size of the struct."""
         return self.cstruct.size
 
-    def pack(self, file_name: str, *, unpack: Optional[bool] = True) -> None:
-        """Writes the raw bytes of the struct to `file_path`"""
-        filepath = Path("output_files")
-        if not filepath.exists():
-            filepath.mkdir()
-        filepath /= file_name
+    def pack(self) -> list[bytes]:
+        """Packs the raw bytes of the struct into a list."""
         data_len = len(self.fields[0].data)
-        with filepath.open(mode="w+b") as dat:
-            for i in range(data_len):
-                data = [field.data[i] for field in self]
-                bdata = self.cstruct.pack(*data)
-                dat.write(bdata)
-        if unpack:
-            self.unpack(filepath)
+        return [
+            self.cstruct.pack(*[field.data[i] for field in self])
+            for i in range(data_len)
+        ]
 
     def unpack(self, filepath: Path) -> None:
         """Reads raw struct bytes written in `filepath`"""
